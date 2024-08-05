@@ -10,7 +10,7 @@ export const dbConnection = new DataSource({
   password: process.env.db_password,
   database: process.env.database,
   entities: [join(__dirname, '/entities/', '**{.ts,.js}')],
-  synchronize: false,
+  synchronize: true,
   logging: process.env.orm_logging
     ? JSON.parse(process.env.orm_logging)
     : false,

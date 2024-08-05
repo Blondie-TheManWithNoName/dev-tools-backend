@@ -8,25 +8,32 @@ import {
 } from 'typeorm';
 import { Favorite } from './favorites';
 import { Tag } from './tag';
+import { IsDefined } from 'class-validator';
 
 @Entity()
-export class Website {
+export class Tool {
   @PrimaryGeneratedColumn()
-  website_id: number;
+  @IsDefined()
+  tool_id: number;
 
   @Column()
+  @IsDefined()
   title: string;
 
-  @Column({ unique: true })
+  @Column()
+  @IsDefined()
   url: string;
 
   @Column({ nullable: true })
   description: string;
 
-  @OneToMany(() => Favorite, (favorite) => favorite.website)
+  @Column()
+  approved: boolean;
+
+  @OneToMany(() => Favorite, (favorite) => favorite.tool)
   favorites: Favorite[];
 
-  @ManyToMany(() => Tag, (tag) => tag.websites)
+  @ManyToMany(() => Tag, (tag) => tag.tools)
   //   @JoinTable({
   //     name: 'website_tags', // Custom join table name (optional)
   //     joinColumn: {

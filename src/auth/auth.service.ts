@@ -10,42 +10,43 @@ import {
 import * as crypto from 'crypto';
 import * as dayjs from 'dayjs';
 import { AuthResponse } from './auth.interface';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
+import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 // import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
-    // private jwtService: JwtService,
+    private jwtService: JwtService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async signIn(email: string, password: string): Promise<AuthResponse> {
     try {
-      const emailLowerCase = email.toLocaleLowerCase();
-      const passwordSalted = this.getSaltedPassword(password);
-      const user = await this.cache.getUser(emailLowerCase, passwordSalted);
-      if (!user) throw new UnauthorizedException();
-      if (user.expiryDate && user.expiryDate < dayjs().unix())
-        throw new UnauthorizedException();
-
-      const payload = {
-        iat: dayjs().unix(),
-        exp: dayjs().add(5, 'day').unix(),
-        sub: 'user',
-        id: user.id,
-      };
-
+      // const emailLowerCase = email.toLocaleLowerCase();
+      // const passwordSalted = this.getSaltedPassword(password);
+      // const user = await this.cache.getUser(emailLowerCase, passwordSalted);
+      // if (!user) throw new UnauthorizedException();
+      // if (user.expiryDate && user.expiryDate < dayjs().unix())
+      //   throw new UnauthorizedException();
+      // const payload = {
+      //   iat: dayjs().unix(),
+      //   exp: dayjs().add(5, 'day').unix(),
+      //   sub: 'user',
+      //   id: user.id,
+      // };
       return {
         httpStatus: HttpStatus.OK,
-        token: this.jwtService.sign(payload),
+        token: this.jwtService.sign('payload'),
       };
     } catch (error) {
       if (error instanceof HttpException) throw error;
-      else if (error instanceof CacheError)
-        throw new ConflictException(
-          'Conflict',
-          'Please contact Waapiti support for resolution',
-        );
+      // else if (error instanceof CacheError)
+      // throw new ConflictException(
+      //   'Conflict',
+      //   'Please contact Waapiti support for resolution',
+      // );
       else throw new InternalServerErrorException();
     }
   }
@@ -78,8 +79,8 @@ export class AuthService {
     return await this.jwtService.decode(token);
   }
 
-  async validateUser(id: number): Promise<UserCache> {
-    return await this.cache.getById(id);
+  async validateUser(id: number) {
+    // return await this.cache.getById(id);
   }
 
   // Encrypt Password
