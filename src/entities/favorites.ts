@@ -1,18 +1,24 @@
-import { Entity, PrimaryColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from './user';
-import { Website } from './tool';
+import { Tool } from './tool';
+import { IsDefined } from 'class-validator';
 
 @Entity()
 export class Favorite {
-  @PrimaryColumn()
-  user_id: number;
-
-  @PrimaryColumn()
-  website_id: number;
+  @PrimaryGeneratedColumn()
+  @IsDefined()
+  id: number;
 
   @ManyToOne(() => User, (user) => user.favorites)
+  @IsDefined()
   user: User;
 
-  @ManyToOne(() => Website, (website) => website.favorites)
-  website: Website;
+  @ManyToOne(() => Tool, (tool) => tool.favorites)
+  @IsDefined()
+  tool: Tool;
 }
