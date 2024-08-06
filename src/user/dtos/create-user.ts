@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDefined, IsEmail, IsString } from 'class-validator';
+import { IsDefined, IsEmail, IsOptional, IsString } from 'class-validator';
 import { CreateUser } from '../interfaces/create-user';
 
 export class CreateUserDTO implements CreateUser {
@@ -18,4 +18,9 @@ export class CreateUserDTO implements CreateUser {
   @IsDefined()
   @IsString()
   password: string;
+  /** Avatar */
+  @ApiProperty({ required: false, type: String })
+  @IsOptional()
+  @IsString()
+  avatar: string;
 }

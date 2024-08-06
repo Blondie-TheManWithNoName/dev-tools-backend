@@ -8,11 +8,6 @@ import {
 } from 'class-validator';
 
 export class UpdateUserDTO {
-  /** User Id */
-  @ApiProperty({ required: true, type: Number })
-  @IsDefined()
-  @IsInt()
-  user_id: number;
   /** Username */
   @ApiProperty({ required: false, type: String })
   @IsOptional()
