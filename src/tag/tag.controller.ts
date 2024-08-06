@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Req,
@@ -35,21 +36,21 @@ export class TagController {
    * [GET] /tags/:id
    */
   @Get(':id')
-  async getTool(
+  async getTag(
     @Req() _req: Request,
     @Res() res: Response,
-    @Param('id') name: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     const response = await this.tagService.getTag(id);
     res.status(response.httpStatus).json(response);
   }
 
   /**
-   * Creates a new tool
-   * [POST] /tool
+   * Creates a new tag
+   * [POST] /tags
    */
   @Post()
-  async createTool(
+  async createTag(
     @Req() _req: Request,
     @Res() res: Response,
     @Body() body: CreateTagDTO,
@@ -59,13 +60,13 @@ export class TagController {
   }
   /**
    * Updates a tag
-   * [PUT] /tool
+   * [PUT] /tags/:id
    */
   @Put(':id')
-  async updateTool(
+  async updateTag(
     @Req() _req: Request,
     @Res() res: Response,
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateTagDTO,
   ) {
     const data = { id: id, ...body };
@@ -74,31 +75,16 @@ export class TagController {
   }
 
   /**
-   * Approves a  tool
-   * [PUT] /tag/:id/tool/:id
-   */
-  @Put(':tagId/tool/:toolId')
-  async addTagToTool(
-    @Req() _req: Request,
-    @Res() res: Response,
-    @Param('tagId') tagId: number,
-    @Param('toolId') toolId: number,
-  ) {
-    const data = { tagId, toolId };
-    const response = await this.tagService.addTagToTool(data);
-    res.status(response.httpStatus).json(response);
-  }
-  /**
-   * Deletes a tool
-   * [DELETE] /tools/:id
+   * Deletes a tag
+   * [DELETE] /tags/:id
    */
   @Delete(':id')
-  async deleteTool(
+  async deleteTag(
     @Req() _req: Request,
     @Res() res: Response,
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<void> {
-    const response = await this.tagService.deleteTool(id);
+    const response = await this.tagService.deleteTag(id);
     res.status(response.httpStatus).json(response);
   }
 }
