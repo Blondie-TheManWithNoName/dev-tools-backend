@@ -70,7 +70,7 @@ export class UserController {
     @Body() body: UpdateUserDTO,
   ) {
     const data = { user_id: id, ...body };
-    const response = await this.userService.updateTool(data);
+    const response = await this.userService.updateUser(data);
     res.status(response.httpStatus).json(response);
   }
 
