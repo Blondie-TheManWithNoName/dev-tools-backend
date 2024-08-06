@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Req,
   Res,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { Response } from 'express';
 import { ToolService } from './tool.service';
 import { CreateToolDTO } from './dtos/create-tool';
 import { UpdateToolDTO } from './dtos/update-tool';
+import { ApproveToolDTO } from './dtos/approve-tool';
 
 @ApiTags('Tools')
 @Controller('tools')
@@ -60,7 +62,7 @@ export class ToolController {
    * Updates a  tool
    * [PUT] /tool
    */
-  @Post(':id')
+  @Put(':id')
   async updateTool(
     @Req() _req: Request,
     @Res() res: Response,
@@ -69,6 +71,22 @@ export class ToolController {
   ) {
     const data = { tool_id: id, ...body };
     const response = await this.toolService.updateTool(data);
+    res.status(response.httpStatus).json(response);
+  }
+
+  /**
+   * Approves a  tool
+   * [PUT] /tool/:id/approve
+   */
+  @Put(':id/approve')
+  async approveTool(
+    @Req() _req: Request,
+    @Res() res: Response,
+    @Param('id') id: number,
+    @Body() body: ApproveToolDTO,
+  ) {
+    const data = { tool_id: id, ...body };
+    const response = await this.toolService.approveTool(data);
     res.status(response.httpStatus).json(response);
   }
   /**
