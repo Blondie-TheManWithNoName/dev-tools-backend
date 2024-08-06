@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Tool } from 'src/entities/tool';
 import { Repository } from 'typeorm';
 import { UpdateTool } from './interfaces/update-tool';
+import { ApproveTool } from './interfaces/approve-tool';
 
 @Injectable()
 export class ToolService {
@@ -47,6 +48,18 @@ export class ToolService {
       };
     } else throw new NotFoundException();
   }
+
+  async approveTool(data: ApproveTool) {
+    const tool = await this.toolsRepo.save(data);
+    if (tool) {
+      return {
+        httpStatus: HttpStatus.OK,
+        message: 'Success!',
+        tool: tool,
+      };
+    } else throw new NotFoundException();
+  }
+
   async deleteTool(id: number) {
     const tool = await this.toolsRepo.delete({ tool_id: id });
 
