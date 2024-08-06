@@ -13,6 +13,7 @@ import { Response } from 'express';
 import { UserService } from './user.service';
 import { CreateUserDTO } from './dtos/create-user';
 import { UpdateUserDTO } from './dtos/update-user';
+import { AddFavoriteDTO } from './dtos/add-favorite';
 
 @ApiTags('User')
 @Controller('users')
@@ -85,6 +86,53 @@ export class UserController {
     @Param('id') id: number,
   ): Promise<void> {
     const response = await this.userService.deleteUser(id);
+    res.status(response.httpStatus).json(response);
+  }
+
+  /**
+   * Gets user favorites
+   * [GET] /users/:id/favorites
+   */
+  @Get(':id')
+  async getFavorites(
+    @Req() _req: Request,
+    @Res() res: Response,
+    @Param('id') id: number,
+  ) {
+    console.log('id', id);
+    const response = await this.userService.getFavorites(id);
+    res.status(response.httpStatus).json(response);
+  }
+
+  /**
+   * Adds a favorite
+   * [POST] /users/:id/favorite"
+   */
+  @Post()
+  async addFavorite(
+    @Req() _req: Request,
+    @Res() res: Response,
+    @Param('id') id: number,
+    @Body() body: AddFavoriteDTO,
+  ) {
+    const data = { user_id: id, ...body };
+    const response = await this.userService.addFavorite(data);
+    res.status(response.httpStatus).json(response);
+  }
+
+  /**
+   * Removes a favorite
+   * [DELETE] /users/:id/favorite"
+   */
+  @Delete()
+  async removeFavorite(
+    @Req() _req: Request,
+    @Res() res: Response,
+    @Param('id') id: number,
+    @Body() body: AddFavoriteDTO,
+  ) {
+    const data = { user_id: id, ...body };
+    const response = await this.userService.removeFavorite(data);
     res.status(response.httpStatus).json(response);
   }
 }

@@ -5,11 +5,16 @@ import { Repository } from 'typeorm';
 import { CreateUserDTO } from './dtos/create-user';
 import { CreateUser } from './interfaces/create-user';
 import { UpdateUser } from './interfaces/update-user';
+import { Tool } from 'src/entities/tool';
+import { Favorite } from 'src/entities/favorites';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(Tool) private readonly toolRepo: Repository<Tool>,
+    @InjectRepository(Favorite)
+    private readonly favoriteRepo: Repository<Favorite>,
   ) {}
   async getAllUsers() {
     const [users, count] = await this.userRepo.findAndCount();
@@ -56,8 +61,55 @@ export class UserService {
     if (user) {
       return {
         httpStatus: HttpStatus.OK,
+        message: 'Deleted!',
         user: user,
       };
     } else throw new NotFoundException();
+  }
+
+  //#region FAVORITES
+
+  async getFavorites(id: number) {
+    const user = await this.userRepo.delete({ user_id: id });
+    if (user) {
+      const favorites = await this.favoriteRepo.findAndCountBy({
+        where: { user: user },
+      });
+
+      return {
+        httpStatus: HttpStatus.OK,
+        favorites: favorites,
+      };
+    } else throw new NotFoundException('User not found');
+  }
+
+  async addFavorite(data) {
+    const user = await this.userRepo.findOneBy({ user_id: data.id });
+    if (user) {
+      const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
+      if (tool) {
+        const favorite = await this.favoriteRepo.save(data);
+        return {
+          httpStatus: HttpStatus.OK,
+          message: 'Deleted',
+          favorite: favorite,
+        };
+      } else throw new NotFoundException('Tool not found');
+    } else throw new NotFoundException('User not found');
+  }
+
+  async removeFavorite(data) {
+    const user = await this.userRepo.findOneBy({ user_id: data.id });
+    if (user) {
+      const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
+      if (tool) {
+        const favorite = await this.favoriteRepo.delete(data);
+        return {
+          httpStatus: HttpStatus.OK,
+          message: 'Deleted',
+          favorite: favorite,
+        };
+      } else throw new NotFoundException('Tool not found');
+    } else throw new NotFoundException('User not found');
   }
 }
