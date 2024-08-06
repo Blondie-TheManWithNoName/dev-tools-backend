@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbConnection } from './database';
 import { ToolModule } from './tool/tool.module';
+import { TagModule } from './tag/tag.module';
 @Module({
   imports: [
     UserModule,
@@ -18,6 +19,7 @@ import { ToolModule } from './tool/tool.module';
       },
     }),
     ToolModule,
+    TagModule,
   ],
   controllers: [AppController],
   providers: [AppService],
