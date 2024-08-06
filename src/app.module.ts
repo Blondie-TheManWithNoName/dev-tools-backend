@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbConnection } from './database';
+import { ToolModule } from './tool/tool.module';
 @Module({
   imports: [
     UserModule,
@@ -16,6 +17,7 @@ import { dbConnection } from './database';
         return source;
       },
     }),
+    ToolModule,
   ],
   controllers: [AppController],
   providers: [AppService],
