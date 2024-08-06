@@ -1,10 +1,20 @@
-import { Entity, PrimaryColumn, Column, ManyToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Tool } from './tool';
 import { IsDefined } from 'class-validator';
 
 @Entity()
 export class Tag {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
+  @IsDefined()
+  id: number;
+
+  @Column({ unique: true })
   @IsDefined()
   name: string;
 

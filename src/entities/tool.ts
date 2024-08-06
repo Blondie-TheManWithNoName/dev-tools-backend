@@ -5,10 +5,12 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  ManyToOne,
 } from 'typeorm';
 import { Favorite } from './favorites';
 import { Tag } from './tag';
 import { IsDefined } from 'class-validator';
+import { User } from './user';
 
 @Entity()
 export class Tool {
@@ -26,6 +28,9 @@ export class Tool {
 
   @Column({ nullable: true })
   description: string;
+
+  @ManyToOne(() => User, (user) => user.user_id)
+  posted_by: User;
 
   @Column()
   approved: boolean;
