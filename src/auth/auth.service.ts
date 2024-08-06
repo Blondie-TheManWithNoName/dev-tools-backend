@@ -7,57 +7,54 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import * as crypto from 'crypto';
 import * as dayjs from 'dayjs';
 import { AuthResponse } from './auth.interface';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
-import { DataSource } from 'typeorm';
-import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/entities/user';
+import { getSaltedPassword } from 'src/app.utils';
 // import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
-    @InjectDataSource() private readonly dataSource: DataSource,
+    @InjectRepository(User) private readonly usersRepo: Repository<User>,
   ) {}
 
   async signIn(email: string, password: string): Promise<AuthResponse> {
     try {
-      // const emailLowerCase = email.toLocaleLowerCase();
-      // const passwordSalted = this.getSaltedPassword(password);
-      // const user = await this.cache.getUser(emailLowerCase, passwordSalted);
-      // if (!user) throw new UnauthorizedException();
-      // if (user.expiryDate && user.expiryDate < dayjs().unix())
-      //   throw new UnauthorizedException();
-      // const payload = {
-      //   iat: dayjs().unix(),
-      //   exp: dayjs().add(5, 'day').unix(),
-      //   sub: 'user',
-      //   id: user.id,
-      // };
+      const emailLowerCase = email.toLocaleLowerCase();
+      const passwordSalted = getSaltedPassword(password);
+      const user = await this.usersRepo.findOneBy({
+        email: emailLowerCase,
+        password: passwordSalted,
+      });
+      if (!user) throw new UnauthorizedException();
+      const payload = {
+        iat: dayjs().unix(),
+        exp: dayjs().add(5, 'day').unix(),
+        sub: 'user',
+        id: user.user_id,
+      };
       return {
         httpStatus: HttpStatus.OK,
-        token: this.jwtService.sign('payload'),
+        token: this.jwtService.sign(payload),
       };
     } catch (error) {
       if (error instanceof HttpException) throw error;
-      // else if (error instanceof CacheError)
-      // throw new ConflictException(
-      //   'Conflict',
-      //   'Please contact Waapiti support for resolution',
-      // );
       else throw new InternalServerErrorException();
     }
   }
 
-  async validateToken(auth: string, secret: string = undefined) {
+  async validateToken(auth: string) {
     const bearer = auth.split(' ')[0] === 'Bearer';
 
     if (bearer) {
       const token = auth.split(' ')[1];
       try {
-        await this.jwtService.verifyAsync(token, { secret: secret });
+        await this.jwtService.verifyAsync(token);
         const decoded = await this.jwtService.decode(token);
         return decoded;
       } catch (error) {
@@ -80,11 +77,6 @@ export class AuthService {
   }
 
   async validateUser(id: number) {
-    // return await this.cache.getById(id);
-  }
-
-  // Encrypt Password
-  private getSaltedPassword(password: string): string {
-    return crypto.createHash('md5').update(password).digest('hex');
+    return await this.usersRepo.findOneBy({ user_id: id });
   }
 }
