@@ -1,4 +1,9 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTool } from './interfaces/create-tool';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tool } from 'src/entities/tool';
@@ -30,12 +35,18 @@ export class ToolService {
     } else throw new NotFoundException();
   }
   async createTool(data: CreateTool) {
-    const tool = await this.toolsRepo.save(data);
-    return {
-      httpStatus: HttpStatus.OK,
-      message: 'Success!',
-      tool: tool,
-    };
+    try {
+      const tool = await this.toolsRepo.save(data);
+      return {
+        httpStatus: HttpStatus.OK,
+        message: 'Success!',
+        tool: tool,
+      };
+    } catch (error) {
+      if (error.code === 'ER_DUP_ENTRY')
+        throw new ConflictException('Duplicated tool');
+      else throw error;
+    }
   }
 
   async updateTool(data: UpdateTool) {
