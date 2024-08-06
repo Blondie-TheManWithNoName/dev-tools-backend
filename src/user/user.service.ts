@@ -1,4 +1,9 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user';
 import { Repository } from 'typeorm';
@@ -7,6 +12,7 @@ import { CreateUser } from './interfaces/create-user';
 import { UpdateUser } from './interfaces/update-user';
 import { Tool } from 'src/entities/tool';
 import { Favorite } from 'src/entities/favorites';
+import { getSaltedPassword } from 'src/app.utils';
 
 @Injectable()
 export class UserService {
@@ -36,62 +42,75 @@ export class UserService {
   }
 
   async createUser(data: CreateUser) {
-    const user = await this.userRepo.save(data);
-    return {
-      httpStatus: HttpStatus.OK,
-      message: 'Success!',
-      user: user,
-    };
-  }
-
-  async updateUser(data: UpdateUser) {
-    const user = await this.userRepo.save(data);
-    if (user) {
+    const userExist = await this.userRepo.findOne({
+      where: [{ username: data.username }, { email: data.email }],
+    });
+    if (!userExist) {
+      data.password = getSaltedPassword(data.password);
+      const user = await this.userRepo.save(data);
       return {
         httpStatus: HttpStatus.OK,
         message: 'Success!',
         user: user,
       };
+    } else throw new ConflictException('User alredy exists');
+  }
+
+  async updateUser(data: UpdateUser) {
+    const userExist = await this.userRepo.findOneBy({
+      user_id: data.user_id,
+    });
+    if (userExist) {
+      if (data.password) data.password = getSaltedPassword(data.password);
+      const user = await this.userRepo.save(data);
+      if (user) {
+        return {
+          httpStatus: HttpStatus.OK,
+          message: 'Success!',
+          user: user,
+        };
+      }
     } else throw new NotFoundException();
   }
 
   async deleteUser(id: number) {
     const user = await this.userRepo.delete({ user_id: id });
-
-    if (user) {
+    if (user.affected > 0) {
       return {
         httpStatus: HttpStatus.OK,
         message: 'Deleted!',
         user: user,
       };
-    } else throw new NotFoundException();
+    } else throw new NotFoundException('User nor found');
   }
 
   //#region FAVORITES
 
   async getFavorites(id: number) {
-    const user = await this.userRepo.delete({ user_id: id });
+    const user = await this.userRepo.findOne({ where: { user_id: id } });
+
     if (user) {
-      const favorites = await this.favoriteRepo.findAndCountBy({
-        where: { user: user },
+      const [favorites, count] = await this.favoriteRepo.findAndCount({
+        where: { user: { user_id: id } },
       });
 
       return {
         httpStatus: HttpStatus.OK,
         favorites: favorites,
+        count: count,
       };
     } else throw new NotFoundException('User not found');
   }
-
   async addFavorite(data) {
     const user = await this.userRepo.findOneBy({ user_id: data.id });
     if (user) {
       const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
       if (tool) {
-        const favorite = await this.favoriteRepo.save(data);
+        console.log('data', data);
+        const favorite = await this.favoriteRepo.save({ user, tool });
         return {
           httpStatus: HttpStatus.OK,
-          message: 'Deleted',
+          message: 'Added!',
           favorite: favorite,
         };
       } else throw new NotFoundException('Tool not found');
@@ -99,14 +118,14 @@ export class UserService {
   }
 
   async removeFavorite(data) {
-    const user = await this.userRepo.findOneBy({ user_id: data.id });
+    const user = await this.userRepo.findOneBy({ user_id: data.user_id });
     if (user) {
       const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
       if (tool) {
-        const favorite = await this.favoriteRepo.delete(data);
+        const favorite = await this.favoriteRepo.delete();
         return {
           httpStatus: HttpStatus.OK,
-          message: 'Deleted',
+          message: 'Removed',
           favorite: favorite,
         };
       } else throw new NotFoundException('Tool not found');
