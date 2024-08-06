@@ -7,11 +7,15 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('auth')
 @ApiTags('Authentication')
 export class AuthController {
-    constructor(private readonly auth: AuthService) {}
+  constructor(private readonly auth: AuthService) {}
 
-    @Post('signin')
-    async signIn(@Req() req: Request, @Res() res: Response, @Body() postData: SignInDTO) {
-        const response = await this.auth.signIn(postData.email, postData.password);
-        return res.status(response.httpStatus).send(response);
-    }
+  @Post('signin')
+  async signIn(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body() postData: SignInDTO,
+  ) {
+    const response = await this.auth.signIn(postData.email, postData.password);
+    return res.status(response.httpStatus).send(response);
+  }
 }
