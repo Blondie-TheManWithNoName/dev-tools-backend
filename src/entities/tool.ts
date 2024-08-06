@@ -32,7 +32,7 @@ export class Tool {
   @ManyToOne(() => User, (user) => user.user_id)
   posted_by: User;
 
-  @Column()
+  @Column({ default: false })
   approved: boolean;
 
   @OneToMany(() => Favorite, (favorite) => favorite.tool)

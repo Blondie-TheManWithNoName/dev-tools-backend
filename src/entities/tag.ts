@@ -12,7 +12,7 @@ import { IsDefined } from 'class-validator';
 export class Tag {
   @PrimaryGeneratedColumn()
   @IsDefined()
-  id: number;
+  tag_id: number;
 
   @Column({ unique: true })
   @IsDefined()

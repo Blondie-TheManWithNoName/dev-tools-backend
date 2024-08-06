@@ -12,7 +12,7 @@ import { IsDefined } from 'class-validator';
 export class Favorite {
   @PrimaryGeneratedColumn()
   @IsDefined()
-  id: number;
+  fav_id: number;
 
   @ManyToOne(() => User, (user) => user.favorites)
   @IsDefined()
