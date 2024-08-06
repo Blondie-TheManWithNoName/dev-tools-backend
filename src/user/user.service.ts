@@ -4,6 +4,7 @@ import { User } from 'src/entities/user';
 import { Repository } from 'typeorm';
 import { CreateUserDTO } from './dtos/create-user';
 import { CreateUser } from './interfaces/create-user';
+import { UpdateUser } from './interfaces/update-user';
 
 @Injectable()
 export class UserService {
@@ -36,6 +37,17 @@ export class UserService {
       message: 'Success!',
       user: user,
     };
+  }
+
+  async updateUser(data: UpdateUser) {
+    const user = await this.userRepo.save(data);
+    if (user) {
+      return {
+        httpStatus: HttpStatus.OK,
+        message: 'Success!',
+        user: user,
+      };
+    } else throw new NotFoundException();
   }
 
   async deleteUser(id: number) {
