@@ -1,3 +1,6 @@
+import { Favorite } from 'src/entities/favorites';
+import { User } from 'src/entities/user';
+
 export interface CreateTool {
   /** Title */
   title: string;
@@ -5,6 +8,6 @@ export interface CreateTool {
   url: string;
   /** Description */
   description: string;
-  /** Approved or not */
-  approved: boolean;
+  /** Posted By */
+  posted_by?: User;
 }

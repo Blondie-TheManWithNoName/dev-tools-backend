@@ -5,7 +5,6 @@ import { Tool } from 'src/entities/tool';
 import { Repository } from 'typeorm';
 import { CreateTag } from './interfaces/create-tag';
 import { UpdateTag } from './interfaces/update-tag';
-import { UpdateTagDTO } from './dtos/update-tag';
 
 @Injectable()
 export class TagService {
@@ -23,7 +22,7 @@ export class TagService {
     };
   }
   async getTag(id: number) {
-    const tag = await this.tagsRepo.findOneBy({ id: id });
+    const tag = await this.tagsRepo.findOneBy({ tag_id: id });
     if (tag) {
       return {
         httpStatus: HttpStatus.OK,
@@ -32,57 +31,55 @@ export class TagService {
     } else throw new NotFoundException();
   }
   async createTag(data: CreateTag) {
-    const tool = await this.tagsRepo.save(data);
+    const tag = await this.tagsRepo.save(data);
     return {
       httpStatus: HttpStatus.OK,
       message: 'Success!',
-      tool: tool,
+      tag: tag,
     };
   }
 
   async updateTag(data: UpdateTag) {
-    const tool = await this.tagsRepo.save(data);
-    if (tool) {
+    const tag = await this.tagsRepo.save(data);
+    if (tag) {
       return {
         httpStatus: HttpStatus.OK,
         message: 'Success!',
-        tool: tool,
+        tag: tag,
       };
     } else throw new NotFoundException();
   }
 
   async addTagToTool(data: any) {
     const tag = await this.tagsRepo.findOne(data.tagId);
-    if (!tag) {
-      return { httpStatus: 404, message: 'Tag not found' };
-    }
-
-    const tool = await this.toolsRepo.findOne(data.toolId, {
-      relations: ['tags'],
-    });
-    if (!tool) {
-      return { httpStatus: 404, message: 'Tool not found' };
-    }
-
-    if (!tool.tags) {
-      tool.tags = [];
-    }
-
-    if (!tool.tags.some((existingTag) => existingTag.tag_id === data.tagId)) {
-      tool.tags.push(tag);
-      await this.toolsRepo.save(tool);
-    }
-
-    return { httpStatus: 200, message: 'Tag added to tool', tool };
+    if (tag) {
+      const tool = await this.toolsRepo.findOne({
+        where: { tool_id: data.toolId },
+        relations: ['tags'],
+      });
+      if (tool) {
+        if (
+          !tool.tags.some((existingTag) => existingTag.tag_id === data.tagId)
+        ) {
+          tool.tags.push(tag);
+          await this.toolsRepo.save(tool);
+          return {
+            httpStatus: HttpStatus.OK,
+            message: 'Tag added to tool',
+            tool,
+          };
+        }
+      } else throw new NotFoundException('Tool not found');
+    } else throw new NotFoundException('Tag not found');
   }
 
-  async deleteTool(id: number) {
-    const tool = await this.tagsRepo.delete({ tool_id: id });
+  async deleteTag(id: number) {
+    const tag = await this.tagsRepo.delete({ tag_id: id });
 
-    if (tool) {
+    if (tag) {
       return {
         httpStatus: HttpStatus.OK,
-        tool: tool,
+        tag: tag,
       };
     } else throw new NotFoundException();
   }

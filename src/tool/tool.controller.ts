@@ -4,10 +4,12 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -15,6 +17,8 @@ import { ToolService } from './tool.service';
 import { CreateToolDTO } from './dtos/create-tool';
 import { UpdateToolDTO } from './dtos/update-tool';
 import { ApproveToolDTO } from './dtos/approve-tool';
+import { AuthRequest } from 'src/app.interfaces';
+import { UserGuard } from 'src/guards/user.guard';
 
 @ApiTags('Tools')
 @Controller('tools')
@@ -39,7 +43,7 @@ export class ToolController {
   async getTool(
     @Req() _req: Request,
     @Res() res: Response,
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
     const response = await this.toolService.getTool(id);
     res.status(response.httpStatus).json(response);
@@ -47,26 +51,33 @@ export class ToolController {
 
   /**
    * Creates a new tool
-   * [POST] /tool
+   * [POST] /tools
    */
+
   @Post()
+  @UseGuards(UserGuard)
   async createTool(
-    @Req() _req: Request,
+    @Req() req: AuthRequest,
     @Res() res: Response,
     @Body() body: CreateToolDTO,
   ) {
-    const response = await this.toolService.createTool(body);
+    const data = {
+      ...body,
+      posted_by: req.user,
+    };
+    const response = await this.toolService.createTool(data);
     res.status(response.httpStatus).json(response);
   }
   /**
-   * Updates a  tool
-   * [PUT] /tool
+   * Updates a tool
+   * [PUT] /tools
    */
   @Put(':id')
+  @UseGuards(UserGuard)
   async updateTool(
     @Req() _req: Request,
     @Res() res: Response,
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateToolDTO,
   ) {
     const data = { tool_id: id, ...body };
@@ -75,14 +86,15 @@ export class ToolController {
   }
 
   /**
-   * Approves a  tool
-   * [PUT] /tool/:id/approve
+   * Approves a tool
+   * [PUT] /tools/:id/approve
    */
   @Put(':id/approve')
+  @UseGuards(UserGuard)
   async approveTool(
     @Req() _req: Request,
     @Res() res: Response,
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: ApproveToolDTO,
   ) {
     const data = { tool_id: id, ...body };
@@ -94,10 +106,11 @@ export class ToolController {
    * [DELETE] /tools/:id
    */
   @Delete(':id')
+  @UseGuards(UserGuard)
   async deleteTool(
     @Req() _req: Request,
     @Res() res: Response,
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<void> {
     const response = await this.toolService.deleteTool(id);
     res.status(response.httpStatus).json(response);

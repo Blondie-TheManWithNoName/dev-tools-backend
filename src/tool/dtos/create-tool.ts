@@ -24,9 +24,4 @@ export class CreateToolDTO implements CreateTool {
   @IsOptional()
   @IsString()
   description: string;
-  /** Approved or not */
-  @ApiProperty({ required: true, type: Boolean })
-  @IsDefined()
-  @IsBoolean()
-  approved: boolean;
 }
