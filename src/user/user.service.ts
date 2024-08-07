@@ -102,7 +102,7 @@ export class UserService {
     } else throw new NotFoundException('User not found');
   }
   async addFavorite(data) {
-    const user = await this.userRepo.findOneBy({ user_id: data.id });
+    const user = await this.userRepo.findOneBy({ user_id: data.user_id });
     if (user) {
       const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
       if (tool) {
@@ -111,21 +111,6 @@ export class UserService {
         return {
           httpStatus: HttpStatus.OK,
           message: 'Added!',
-          favorite: favorite,
-        };
-      } else throw new NotFoundException('Tool not found');
-    } else throw new NotFoundException('User not found');
-  }
-
-  async removeFavorite(data) {
-    const user = await this.userRepo.findOneBy({ user_id: data.user_id });
-    if (user) {
-      const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
-      if (tool) {
-        const favorite = await this.favoriteRepo.delete();
-        return {
-          httpStatus: HttpStatus.OK,
-          message: 'Removed',
           favorite: favorite,
         };
       } else throw new NotFoundException('Tool not found');
