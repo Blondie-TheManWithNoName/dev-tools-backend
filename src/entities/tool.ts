@@ -11,6 +11,7 @@ import { Favorite } from './favorites';
 import { Tag } from './tag';
 import { IsDefined } from 'class-validator';
 import { User } from './user';
+import { ToolState } from './tool_state';
 
 @Entity()
 export class Tool {
@@ -32,23 +33,23 @@ export class Tool {
   @ManyToOne(() => User, (user) => user.user_id)
   posted_by: User;
 
-  @Column({ default: false })
-  approved: boolean;
+  @ManyToOne(() => ToolState, (toolState) => toolState.state_id)
+  state: ToolState;
 
   @OneToMany(() => Favorite, (favorite) => favorite.tool)
   favorites: Favorite[];
 
   @ManyToMany(() => Tag, (tag) => tag.tools)
-  //   @JoinTable({
-  //     name: 'website_tags', // Custom join table name (optional)
-  //     joinColumn: {
-  //       name: 'website_id',
-  //       referencedColumnName: 'website_id',
-  //     },
-  //     inverseJoinColumn: {
-  //       name: 'tag_name',
-  //       referencedColumnName: 'name',
-  //     },
-  //   })
+  @JoinTable({
+    name: 'tool_tags', // Custom join table name (optional)
+    joinColumn: {
+      name: 'tool_id',
+      referencedColumnName: 'tool_id',
+    },
+    inverseJoinColumn: {
+      name: 'tag_name',
+      referencedColumnName: 'name',
+    },
+  })
   tags: Tag[];
 }
