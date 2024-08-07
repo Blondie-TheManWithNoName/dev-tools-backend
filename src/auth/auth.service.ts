@@ -14,6 +14,7 @@ import { DataSource, Repository } from 'typeorm';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user';
 import { getSaltedPassword } from 'src/app.utils';
+import { UserTypeEnum } from 'src/enums/user-type';
 // import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -78,5 +79,10 @@ export class AuthService {
 
   async validateUser(id: number) {
     return await this.usersRepo.findOneBy({ user_id: id });
+  }
+
+  async validateAdmin(id: number): Promise<boolean> {
+    const user = await this.usersRepo.findOneBy({ user_id: id });
+    return user.type.type_id === UserTypeEnum.admin ? true : false;
   }
 }
