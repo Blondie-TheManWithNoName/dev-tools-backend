@@ -10,7 +10,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { TagService } from './tag.service';
 import { CreateTagDTO } from './dtos/create-tag';
@@ -26,6 +26,7 @@ export class TagController {
    * [GET] /tags
    */
   @Get()
+  @ApiOperation({ summary: 'List tags' })
   async getAllTags(@Req() _req: Request, @Res() res: Response) {
     const response = await this.tagService.getAllTags();
     res.status(response.httpStatus).json(response);
@@ -36,6 +37,7 @@ export class TagController {
    * [GET] /tags/:id
    */
   @Get(':id')
+  @ApiOperation({ summary: 'List tags' })
   async getTag(
     @Req() _req: Request,
     @Res() res: Response,
@@ -50,6 +52,7 @@ export class TagController {
    * [POST] /tags
    */
   @Post()
+  @ApiOperation({ summary: 'Creates a new tag' })
   async createTag(
     @Req() _req: Request,
     @Res() res: Response,
@@ -63,6 +66,7 @@ export class TagController {
    * [PUT] /tags/:id
    */
   @Put(':id')
+  @ApiOperation({ summary: 'Updates a tool' })
   async updateTag(
     @Req() _req: Request,
     @Res() res: Response,
@@ -79,6 +83,7 @@ export class TagController {
    * [DELETE] /tags/:id
    */
   @Delete(':id')
+  @ApiOperation({ summary: 'Deletes a tag' })
   async deleteTag(
     @Req() _req: Request,
     @Res() res: Response,
