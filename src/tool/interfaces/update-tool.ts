@@ -5,5 +5,6 @@ export interface UpdateTool {
   title?: string;
   /** URL */
   url?: string;
-  /** Description */
+  /** Not Approved */
+  approved: boolean;
 }

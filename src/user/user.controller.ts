@@ -125,21 +125,4 @@ export class UserController {
     const response = await this.userService.addFavorite(data);
     res.status(response.httpStatus).json(response);
   }
-
-  /**
-   * Removes a favorite
-   * [DELETE] /users/:id/favorites
-   */
-  @Delete(':id/favorites')
-  @UseGuards(UserGuard)
-  async removeFavorite(
-    @Req() _req: Request,
-    @Res() res: Response,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: AddFavoriteDTO,
-  ) {
-    const data = { user_id: id, ...body };
-    const response = await this.userService.removeFavorite(data);
-    res.status(response.httpStatus).json(response);
-  }
 }

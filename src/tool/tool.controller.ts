@@ -80,7 +80,7 @@ export class ToolController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateToolDTO,
   ) {
-    const data = { tool_id: id, ...body };
+    const data = { tool_id: id, ...body, approved: false };
     const response = await this.toolService.updateTool(data);
     res.status(response.httpStatus).json(response);
   }

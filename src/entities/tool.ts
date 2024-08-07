@@ -22,7 +22,7 @@ export class Tool {
   @IsDefined()
   title: string;
 
-  @Column()
+  @Column({ unique: true })
   @IsDefined()
   url: string;
 
