@@ -3,6 +3,7 @@ import {
   HttpStatus,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user';
@@ -56,21 +57,26 @@ export class UserService {
     } else throw new ConflictException('User alredy exists');
   }
 
-  async updateUser(data: UpdateUser) {
-    const userExist = await this.userRepo.findOneBy({
-      user_id: data.user_id,
-    });
-    if (userExist) {
-      if (data.password) data.password = getSaltedPassword(data.password);
-      const user = await this.userRepo.save(data);
-      if (user) {
-        return {
-          httpStatus: HttpStatus.OK,
-          message: 'Success!',
-          user: user,
-        };
-      }
-    } else throw new NotFoundException();
+  async updateUser(data: UpdateUser, user) {
+    if (user.user_id === data.user_id) {
+      const userExist = await this.userRepo.findOneBy({
+        user_id: data.user_id,
+      });
+      if (userExist) {
+        if (data.password) data.password = getSaltedPassword(data.password);
+        const user = await this.userRepo.save(data);
+        if (user) {
+          return {
+            httpStatus: HttpStatus.OK,
+            message: 'Success!',
+            user: user,
+          };
+        }
+      } else throw new NotFoundException();
+    } else
+      throw new UnauthorizedException(
+        'User not authorized to delete this favorite',
+      );
   }
 
   async deleteUser(id: number) {
@@ -101,19 +107,27 @@ export class UserService {
       };
     } else throw new NotFoundException('User not found');
   }
-  async addFavorite(data) {
-    const user = await this.userRepo.findOneBy({ user_id: data.user_id });
-    if (user) {
-      const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
-      if (tool) {
-        console.log('data', data);
-        const favorite = await this.favoriteRepo.save({ user, tool });
-        return {
-          httpStatus: HttpStatus.OK,
-          message: 'Added!',
-          favorite: favorite,
-        };
-      } else throw new NotFoundException('Tool not found');
-    } else throw new NotFoundException('User not found');
+
+  async addFavorite(data, user) {
+    if (user.user_id === data.user_id) {
+      const userCheck = await this.userRepo.findOneBy({
+        user_id: data.user_id,
+      });
+      if (userCheck) {
+        const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
+        if (tool) {
+          console.log('data', data);
+          const favorite = await this.favoriteRepo.save({ user, tool });
+          return {
+            httpStatus: HttpStatus.OK,
+            message: 'Added!',
+            favorite: favorite,
+          };
+        } else throw new NotFoundException('Tool not found');
+      } else throw new NotFoundException('User not found');
+    } else
+      throw new UnauthorizedException(
+        'User not authorized to delete this favorite',
+      );
   }
 }

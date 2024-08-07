@@ -18,6 +18,8 @@ import { CreateUserDTO } from './dtos/create-user';
 import { UpdateUserDTO } from './dtos/update-user';
 import { AddFavoriteDTO } from './dtos/add-favorite';
 import { UserGuard } from 'src/guards/user.guard';
+import { AuthRequest } from 'src/app.interfaces';
+import { AdminGuard } from 'src/guards/admin.guard';
 
 @ApiTags('User')
 @Controller('users')
@@ -74,13 +76,13 @@ export class UserController {
   @ApiOperation({ summary: 'Updates a user' })
   @UseGuards(UserGuard)
   async updateTool(
-    @Req() _req: Request,
+    @Req() req: AuthRequest,
     @Res() res: Response,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateUserDTO,
   ) {
     const data = { user_id: id, ...body };
-    const response = await this.userService.updateUser(data);
+    const response = await this.userService.updateUser(data, req.user);
     res.status(response.httpStatus).json(response);
   }
 
@@ -90,7 +92,7 @@ export class UserController {
    */
   @Delete(':id')
   @ApiOperation({ summary: 'Deletes a user' })
-  @UseGuards(UserGuard)
+  @UseGuards(UserGuard, AdminGuard)
   async deleteUser(
     @Req() _req: Request,
     @Res() res: Response,
@@ -123,13 +125,13 @@ export class UserController {
   @ApiOperation({ summary: 'Adds a favorite to user' })
   @UseGuards(UserGuard)
   async addFavorite(
-    @Req() _req: Request,
+    @Req() req: AuthRequest,
     @Res() res: Response,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: AddFavoriteDTO,
   ) {
     const data = { user_id: id, ...body };
-    const response = await this.userService.addFavorite(data);
+    const response = await this.userService.addFavorite(data, req.user);
     res.status(response.httpStatus).json(response);
   }
 }
