@@ -11,7 +11,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ToolService } from './tool.service';
 import { CreateToolDTO } from './dtos/create-tool';
@@ -30,6 +30,7 @@ export class ToolController {
    * [GET] /tools
    */
   @Get()
+  @ApiOperation({ summary: 'Get all tools' })
   async getAllTools(@Req() _req: Request, @Res() res: Response) {
     const response = await this.toolService.getAllTools();
     res.status(response.httpStatus).json(response);
@@ -40,6 +41,7 @@ export class ToolController {
    * [GET] /tools/:id
    */
   @Get(':id')
+  @ApiOperation({ summary: 'Get a tool' })
   async getTool(
     @Req() _req: Request,
     @Res() res: Response,
@@ -55,6 +57,7 @@ export class ToolController {
    */
 
   @Post()
+  @ApiOperation({ summary: 'Creates a new tool' })
   @UseGuards(UserGuard)
   async createTool(
     @Req() req: AuthRequest,
@@ -73,6 +76,7 @@ export class ToolController {
    * [PUT] /tools
    */
   @Put(':id')
+  @ApiOperation({ summary: 'Updates a tool' })
   @UseGuards(UserGuard)
   async updateTool(
     @Req() _req: Request,
@@ -90,6 +94,7 @@ export class ToolController {
    * [PUT] /tools/:id/approve
    */
   @Put(':id/approve')
+  @ApiOperation({ summary: 'Approves or dispproves a tool' })
   @UseGuards(UserGuard)
   async approveTool(
     @Req() _req: Request,
@@ -106,6 +111,7 @@ export class ToolController {
    * [DELETE] /tools/:id
    */
   @Delete(':id')
+  @ApiOperation({ summary: 'Deletes a tool' })
   @UseGuards(UserGuard)
   async deleteTool(
     @Req() _req: Request,

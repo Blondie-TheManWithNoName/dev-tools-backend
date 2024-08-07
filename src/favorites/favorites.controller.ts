@@ -10,7 +10,7 @@ import {
 import { FavoritesService } from './favorites.service';
 import { UserGuard } from 'src/guards/user.guard';
 import { Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthRequest } from 'src/app.interfaces';
 
 @ApiTags('Favorites')
@@ -23,6 +23,7 @@ export class FavoritesController {
    * [DELETE] /favorites
    */
   @Delete(':id')
+  @ApiOperation({ summary: 'Removes a favorite' })
   @UseGuards(UserGuard)
   async deleteFavorite(
     @Req() req: AuthRequest,

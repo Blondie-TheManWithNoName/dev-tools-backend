@@ -11,7 +11,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { UserService } from './user.service';
 import { CreateUserDTO } from './dtos/create-user';
@@ -28,6 +28,7 @@ export class UserController {
    * Get all users
    * [GET] /users
    */
+  @ApiOperation({ summary: 'List users' })
   @Get()
   async getAllUsers(@Req() _req: Request, @Res() res: Response) {
     const response = await this.userService.getAllUsers();
@@ -38,6 +39,7 @@ export class UserController {
    * Get a user
    * [GET] /users/:id
    */
+  @ApiOperation({ summary: 'Get a users' })
   @Get(':id')
   async getUser(
     @Req() _req: Request,
@@ -54,6 +56,7 @@ export class UserController {
    * [POST] /users
    */
   @Post()
+  @ApiOperation({ summary: 'Create a user' })
   async createUser(
     @Req() _req: Request,
     @Res() res: Response,
@@ -64,10 +67,11 @@ export class UserController {
   }
 
   /**
-   * Updates a  tool
-   * [PUT] /tool
+   * Updates a user
+   * [PUT] /user/:id
    */
   @Put(':id')
+  @ApiOperation({ summary: 'Updates a user' })
   @UseGuards(UserGuard)
   async updateTool(
     @Req() _req: Request,
@@ -85,6 +89,7 @@ export class UserController {
    * [DELETE] /users/:id
    */
   @Delete(':id')
+  @ApiOperation({ summary: 'Deletes a user' })
   @UseGuards(UserGuard)
   async deleteUser(
     @Req() _req: Request,
@@ -100,6 +105,7 @@ export class UserController {
    * [GET] /users/:id/favorites
    */
   @Get(':id/favorites')
+  @ApiOperation({ summary: 'Get users favorite' })
   async getFavorites(
     @Req() _req: Request,
     @Res() res: Response,
@@ -114,6 +120,7 @@ export class UserController {
    * [POST] /users/:id/favorites
    */
   @Post(':id/favorites')
+  @ApiOperation({ summary: 'Adds a favorite to user' })
   @UseGuards(UserGuard)
   async addFavorite(
     @Req() _req: Request,
