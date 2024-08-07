@@ -1,6 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+} from 'typeorm';
 import { Favorite } from './favorites';
 import { IsDefined } from 'class-validator';
+import { UserType } from './user_type';
 
 @Entity()
 export class User {
@@ -22,4 +29,7 @@ export class User {
 
   @OneToMany(() => Favorite, (favorite) => favorite.user)
   favorites: Favorite[];
+
+  @ManyToOne(() => UserType, (userType) => userType.type_id)
+  type: UserType;
 }
