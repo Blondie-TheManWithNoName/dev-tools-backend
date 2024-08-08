@@ -26,34 +26,9 @@ export class Tool {
   // @JoinColumn({ name: 'state_id' })
   state: ToolState;
 
-  @Column()
-  @IsDefined()
-  title: string;
-
-  @Column({ unique: true })
-  @IsDefined()
-  url: string;
-
-  @Column({ nullable: true })
-  description: string;
-
   @ManyToOne(() => User, (user) => user.user_id)
   posted_by: User;
 
   @OneToMany(() => Favorite, (favorite) => favorite.tool)
   favorites: Favorite[];
-
-  @ManyToMany(() => Tag, (tag) => tag.tools)
-  @JoinTable({
-    name: 'tool_tags', // Custom join table name (optional)
-    joinColumn: {
-      name: 'tool_id',
-      referencedColumnName: 'tool_id',
-    },
-    inverseJoinColumn: {
-      name: 'tag_name',
-      referencedColumnName: 'name',
-    },
-  })
-  tags: Tag[];
 }

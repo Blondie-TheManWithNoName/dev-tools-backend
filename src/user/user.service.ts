@@ -14,12 +14,13 @@ import { UpdateUser } from './interfaces/update-user';
 import { Tool } from 'src/entities/tool';
 import { Favorite } from 'src/entities/favorites';
 import { getSaltedPassword } from 'src/app.utils';
+import { ToolInfo } from 'src/entities/tool_info';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
-    @InjectRepository(Tool) private readonly toolRepo: Repository<Tool>,
+    @InjectRepository(ToolInfo) private readonly toolRepo: Repository<ToolInfo>,
     @InjectRepository(Favorite)
     private readonly favoriteRepo: Repository<Favorite>,
   ) {}

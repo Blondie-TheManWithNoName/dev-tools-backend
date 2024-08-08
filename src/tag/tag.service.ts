@@ -5,12 +5,14 @@ import { Tool } from 'src/entities/tool';
 import { Repository } from 'typeorm';
 import { CreateTag } from './interfaces/create-tag';
 import { UpdateTag } from './interfaces/update-tag';
+import { ToolInfo } from 'src/entities/tool_info';
 
 @Injectable()
 export class TagService {
   constructor(
     @InjectRepository(Tag) private readonly tagsRepo: Repository<Tag>,
-    @InjectRepository(Tool) private readonly toolsRepo: Repository<Tool>,
+    @InjectRepository(ToolInfo)
+    private readonly toolsRepo: Repository<ToolInfo>,
   ) {}
   async getAllTags() {
     const [tags, count] = await this.tagsRepo.findAndCount();
@@ -51,26 +53,26 @@ export class TagService {
   }
 
   async addTagToTool(data: any) {
-    const tag = await this.tagsRepo.findOne(data.tagId);
-    if (tag) {
-      const tool = await this.toolsRepo.findOne({
-        where: { tool_id: data.toolId },
-        relations: ['tags'],
-      });
-      if (tool) {
-        if (
-          !tool.tags.some((existingTag) => existingTag.tag_id === data.tagId)
-        ) {
-          tool.tags.push(tag);
-          await this.toolsRepo.save(tool);
-          return {
-            httpStatus: HttpStatus.OK,
-            message: 'Tag added to tool',
-            tool,
-          };
-        }
-      } else throw new NotFoundException('Tool not found');
-    } else throw new NotFoundException('Tag not found');
+    // const tag = await this.tagsRepo.findOne(data.tagId);
+    // if (tag) {
+    //   const tool = await this.toolsRepo.findOne({
+    //     where: { tool_id: data.toolId },
+    //     relations: ['tags'],
+    //   });
+    //   if (tool) {
+    //     if (
+    //       !tool.tags.some((existingTag) => existingTag.tag_id === data.tagId)
+    //     ) {
+    //       tool.tags.push(tag);
+    //       await this.toolsRepo.save(tool);
+    //       return {
+    //         httpStatus: HttpStatus.OK,
+    //         message: 'Tag added to tool',
+    //         tool,
+    //       };
+    //     }
+    //   } else throw new NotFoundException('Tool not found');
+    // } else throw new NotFoundException('Tag not found');
   }
 
   async deleteTag(id: number) {

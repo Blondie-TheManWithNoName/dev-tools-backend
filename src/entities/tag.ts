@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { Tool } from './tool';
 import { IsDefined } from 'class-validator';
+import { ToolInfo } from './tool_info';
 
 @Entity()
 export class Tag {
@@ -18,6 +19,6 @@ export class Tag {
   @IsDefined()
   name: string;
 
-  @ManyToMany(() => Tool, (tool) => tool.tags)
-  tools: Tool[];
+  @ManyToMany(() => ToolInfo, (toolInfo) => toolInfo.tags)
+  tools: ToolInfo[];
 }
