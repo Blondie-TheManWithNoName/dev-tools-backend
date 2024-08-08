@@ -6,6 +6,8 @@ import {
   ManyToMany,
   JoinTable,
   ManyToOne,
+  JoinColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { Favorite } from './favorites';
 import { Tag } from './tag';
@@ -18,6 +20,11 @@ export class Tool {
   @PrimaryGeneratedColumn()
   @IsDefined()
   tool_id: number;
+
+  // @PrimaryColumn({ name: 'state_id', type: 'number' })
+  @ManyToOne(() => ToolState, (toolState) => toolState.state_id)
+  // @JoinColumn({ name: 'state_id' })
+  state: ToolState;
 
   @Column()
   @IsDefined()
@@ -32,9 +39,6 @@ export class Tool {
 
   @ManyToOne(() => User, (user) => user.user_id)
   posted_by: User;
-
-  @ManyToOne(() => ToolState, (toolState) => toolState.state_id)
-  state: ToolState;
 
   @OneToMany(() => Favorite, (favorite) => favorite.tool)
   favorites: Favorite[];
