@@ -7,7 +7,7 @@ import {
 import { CreateTool } from './interfaces/create-tool';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tool } from 'src/entities/tool';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { UpdateToolInfo } from './interfaces/update-tool';
 import { SetStateTool } from './interfaces/approve-tool';
 import { ToolStateEnum } from 'src/enums/tool-state';
@@ -28,7 +28,23 @@ export class ToolService {
     private readonly processToolRepo: Repository<ProcessTool>,
   ) {}
   async getAllTools() {
-    const [tools, count] = await this.toolsRepo.findAndCount();
+    const [tools, count] = await this.toolsInfoRepo.findAndCount({
+      select: {
+        tool_id: true,
+        title: true,
+        url: true,
+        description: true,
+      },
+      where: {
+        valid: true,
+        tool: {
+          state: {
+            state_id: In([ToolStateEnum.approved, ToolStateEnum.updated]),
+          },
+        },
+      },
+      relations: ['tool'],
+    });
 
     return {
       httpStatus: HttpStatus.OK,
@@ -36,6 +52,7 @@ export class ToolService {
       tools: tools,
     };
   }
+
   async getTool(id: number) {
     const tool = await this.toolsRepo.findOneBy({ tool_id: id });
     if (tool) {
