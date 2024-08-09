@@ -45,13 +45,31 @@ export class ToolService {
       };
     } else throw new NotFoundException();
   }
-  async createTool(data: CreateTool) {
+
+  async createTool(data: CreateTool, user) {
     try {
-      const tool = await this.toolsRepo.save(data);
+      const tool = await this.toolsRepo.save({
+        posted_by: user,
+        state: await this.toolStateRepo.findOneBy({
+          state_id: ToolStateEnum.pending,
+        }),
+      });
+
+      const toolInfo = await this.toolsInfoRepo.save({
+        tool_id: tool.tool_id,
+        valid: true,
+        ...data,
+      });
+      await this.toolsInfoRepo.save({
+        tool_id: tool.tool_id,
+        valid: false,
+        ...data,
+      });
       return {
         httpStatus: HttpStatus.OK,
         message: 'Success!',
         tool: tool,
+        toolInfo: toolInfo,
       };
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY')

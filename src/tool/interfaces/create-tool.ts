@@ -8,6 +8,4 @@ export interface CreateTool {
   url: string;
   /** Description */
   description: string;
-  /** Posted By */
-  posted_by?: User;
 }

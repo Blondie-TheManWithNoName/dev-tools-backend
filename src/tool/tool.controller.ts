@@ -66,11 +66,8 @@ export class ToolController {
     @Res() res: Response,
     @Body() body: CreateToolDTO,
   ) {
-    const data = {
-      ...body,
-      posted_by: req.user,
-    };
-    const response = await this.toolService.createTool(data);
+    const data = body;
+    const response = await this.toolService.createTool(data, req.user);
     res.status(response.httpStatus).json(response);
   }
   /**
