@@ -1,4 +1,6 @@
-export interface UpdateTool {
+import { ToolState } from 'src/entities/tool_state';
+
+export interface UpdateToolInfo {
   /** Tool Id */
   tool_id: number;
   /** Title */
@@ -6,5 +8,8 @@ export interface UpdateTool {
   /** URL */
   url?: string;
   /** Not Approved */
-  approved: boolean;
+  // stateStateId: ToolState;
+  description: string;
+
+  valid: boolean;
 }

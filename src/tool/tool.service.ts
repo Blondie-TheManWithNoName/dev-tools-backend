@@ -78,13 +78,38 @@ export class ToolService {
     }
   }
 
-  async updateTool(data: UpdateTool) {
-    const tool = await this.toolsRepo.save(data);
+  async updateTool(data: UpdateToolInfo, user: User) {
+    const tool = await this.toolsRepo.findOne({
+      where: { tool_id: data.tool_id },
+      relations: ['state', 'posted_by', 'favorites'],
+    });
     if (tool) {
+      // Change tool status
+      await this.toolsRepo.save({
+        tool_id: data.tool_id,
+        state: await this.toolStateRepo.findOneBy({
+          state_id: ToolStateEnum.updated,
+        }),
+      });
+
+      // Generate process data
+      const processData = {
+        tool: tool,
+        prev_state: tool.state,
+        state: await this.toolStateRepo.findOneBy({
+          state_id: ToolStateEnum.updated,
+        }),
+        // message: data.message,
+        processed_by: user,
+        processed_time: new Date(),
+      };
+      const processed = await this.processToolRepo.save(processData);
+      const newTool = await this.toolsInfoRepo.save(data);
+
       return {
         httpStatus: HttpStatus.OK,
         message: 'Success!',
-        tool: tool,
+        tool: newTool,
       };
     } else throw new NotFoundException();
   }
@@ -94,7 +119,6 @@ export class ToolService {
       where: { tool_id: data.tool_id },
       relations: ['state', 'posted_by', 'favorites'],
     });
-    console.log('oldTOol', oldTool);
     if (oldTool) {
       // Change tool status
       await this.toolsRepo.save({
@@ -115,6 +139,23 @@ export class ToolService {
         processed_time: new Date(),
       };
       const process = await this.processToolRepo.save(processData);
+
+      if (
+        oldTool.state.state_id === ToolStateEnum.updated &&
+        data.state === ToolStateEnum.approved
+      ) {
+        const upadtedToolInfo = await this.toolsInfoRepo.findBy({
+          tool_id: data.tool_id,
+        });
+
+        if (upadtedToolInfo[0].valid) {
+          const { valid, ...info } = upadtedToolInfo[1];
+          await this.toolsInfoRepo.save({ ...info, valid: true });
+        } else if (upadtedToolInfo[1].valid) {
+          const { valid, ...info } = upadtedToolInfo[0];
+          await this.toolsInfoRepo.save({ ...info, valid: true });
+        }
+      }
 
       return {
         httpStatus: HttpStatus.OK,

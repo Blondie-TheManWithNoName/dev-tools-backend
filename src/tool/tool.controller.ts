@@ -78,13 +78,13 @@ export class ToolController {
   @ApiOperation({ summary: 'Updates a tool' })
   @UseGuards(UserGuard)
   async updateTool(
-    @Req() _req: Request,
+    @Req() req: AuthRequest,
     @Res() res: Response,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateToolDTO,
   ) {
-    const data = { tool_id: id, ...body, approved: false };
-    const response = await this.toolService.updateTool(data);
+    const data = { tool_id: id, valid: false, ...body };
+    const response = await this.toolService.updateTool(data, req.user);
     res.status(response.httpStatus).json(response);
   }
 
@@ -112,7 +112,7 @@ export class ToolController {
    */
   @Delete(':id')
   @ApiOperation({ summary: 'Deletes a tool' })
-  @UseGuards(UserGuard)
+  @UseGuards(UserGuard, AdminGuard)
   async deleteTool(
     @Req() _req: Request,
     @Res() res: Response,
