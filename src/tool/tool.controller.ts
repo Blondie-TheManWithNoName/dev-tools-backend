@@ -21,6 +21,7 @@ import { AuthRequest } from 'src/app.interfaces';
 import { UserGuard } from 'src/guards/user.guard';
 import { AdminGuard } from 'src/guards/admin.guard';
 import { ToolStateEnum } from 'src/enums/tool-state';
+import { OptionalUserGuard } from 'src/guards/optUser.guard';
 
 @ApiTags('Tools')
 @Controller('tools')
@@ -43,13 +44,14 @@ export class ToolController {
    * [GET] /tools/:id
    */
   @Get(':id')
+  @UseGuards(OptionalUserGuard)
   @ApiOperation({ summary: 'Get a tool' })
   async getTool(
-    @Req() _req: Request,
+    @Req() req: AuthRequest,
     @Res() res: Response,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    const response = await this.toolService.getTool(id);
+    const response = await this.toolService.getTool(id, req.user);
     res.status(response.httpStatus).json(response);
   }
 

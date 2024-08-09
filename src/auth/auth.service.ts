@@ -78,7 +78,10 @@ export class AuthService {
   }
 
   async validateUser(id: number) {
-    return await this.usersRepo.findOneBy({ user_id: id });
+    return await this.usersRepo.findOne({
+      where: { user_id: id },
+      relations: ['type'],
+    });
   }
 
   async validateAdmin(id: number): Promise<boolean> {

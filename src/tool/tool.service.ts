@@ -7,7 +7,7 @@ import {
 import { CreateTool } from './interfaces/create-tool';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tool } from 'src/entities/tool';
-import { In, Repository } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { UpdateToolInfo } from './interfaces/update-tool';
 import { SetStateTool } from './interfaces/approve-tool';
 import { ToolStateEnum } from 'src/enums/tool-state';
@@ -15,6 +15,7 @@ import { User } from 'src/entities/user';
 import { ToolState } from 'src/entities/tool_state';
 import { ProcessTool } from 'src/entities/process_tool';
 import { ToolInfo } from 'src/entities/tool_info';
+import { UserTypeEnum } from 'src/enums/user-type';
 
 @Injectable()
 export class ToolService {
@@ -53,14 +54,54 @@ export class ToolService {
     };
   }
 
-  async getTool(id: number) {
-    const tool = await this.toolsRepo.findOneBy({ tool_id: id });
-    if (tool) {
-      return {
-        httpStatus: HttpStatus.OK,
-        tool: tool,
-      };
-    } else throw new NotFoundException();
+  async getTool(id: number, user) {
+    if (user === undefined) {
+      const tool = await this.toolsInfoRepo.findOne({
+        where: {
+          tool_id: id,
+          valid: true,
+          tool: {
+            state: {
+              state_id: In([ToolStateEnum.approved, ToolStateEnum.updated]),
+            },
+          },
+        },
+        relations: ['tool'],
+      });
+      if (tool) {
+        return {
+          httpStatus: HttpStatus.OK,
+          tool: tool,
+        };
+      } else throw new NotFoundException();
+    } else {
+      const tool = await this.toolsInfoRepo
+        .createQueryBuilder('toolInfo')
+        .leftJoinAndSelect('toolInfo.tool', 'tool')
+        .where('toolInfo.tool_id = :id', { id })
+        .andWhere('toolInfo.valid = :valid', { valid: true })
+        .andWhere(
+          new Brackets((qb) => {
+            if (user.type?.type_id === UserTypeEnum.admin) {
+              return;
+            } else {
+              qb.where('tool.state.state_id IN (:...states)', {
+                states: [ToolStateEnum.approved, ToolStateEnum.updated],
+              }).orWhere('tool.posted_by.user_id = :user_id', {
+                user_id: user.user_id,
+              });
+            }
+          }),
+        )
+        .getOne();
+
+      if (tool) {
+        return {
+          httpStatus: HttpStatus.OK,
+          tool: tool,
+        };
+      } else throw new NotFoundException();
+    }
   }
 
   async createTool(data: CreateTool, user) {
