@@ -8,13 +8,24 @@ import { CreateTool } from './interfaces/create-tool';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tool } from 'src/entities/tool';
 import { Repository } from 'typeorm';
-import { UpdateTool } from './interfaces/update-tool';
-import { ApproveTool } from './interfaces/approve-tool';
+import { UpdateToolInfo } from './interfaces/update-tool';
+import { SetStateTool } from './interfaces/approve-tool';
+import { ToolStateEnum } from 'src/enums/tool-state';
+import { User } from 'src/entities/user';
+import { ToolState } from 'src/entities/tool_state';
+import { ProcessTool } from 'src/entities/process_tool';
+import { ToolInfo } from 'src/entities/tool_info';
 
 @Injectable()
 export class ToolService {
   constructor(
-    @InjectRepository(Tool) private readonly toolsRepo: Repository<Tool>,
+    @InjectRepository(Tool) private toolsRepo: Repository<Tool>,
+    @InjectRepository(ToolInfo)
+    private readonly toolsInfoRepo: Repository<ToolInfo>,
+    @InjectRepository(ToolState)
+    private readonly toolStateRepo: Repository<ToolState>,
+    @InjectRepository(ProcessTool)
+    private readonly processToolRepo: Repository<ProcessTool>,
   ) {}
   async getAllTools() {
     const [tools, count] = await this.toolsRepo.findAndCount();
@@ -60,13 +71,38 @@ export class ToolService {
     } else throw new NotFoundException();
   }
 
-  async approveTool(data: ApproveTool) {
-    const tool = await this.toolsRepo.save(data);
-    if (tool) {
+  async setStateTool(data: SetStateTool, user) {
+    const oldTool = await this.toolsRepo.findOne({
+      where: { tool_id: data.tool_id },
+      relations: ['state', 'posted_by', 'favorites'],
+    });
+    console.log('oldTOol', oldTool);
+    if (oldTool) {
+      // Change tool status
+      await this.toolsRepo.save({
+        tool_id: data.tool_id,
+        state: await this.toolStateRepo.findOneBy({
+          state_id: data.state,
+        }),
+      });
+
+      // Generate process data
+      const processData = {
+        tool: oldTool,
+        prev_state: oldTool.state,
+        state: await this.toolStateRepo.findOneBy({
+          state_id: data.state,
+        }),
+        processed_by: user,
+        processed_time: new Date(),
+      };
+      const process = await this.processToolRepo.save(processData);
+
       return {
         httpStatus: HttpStatus.OK,
         message: 'Success!',
-        tool: tool,
+        // tool: tool,
+        process: process,
       };
     } else throw new NotFoundException();
   }

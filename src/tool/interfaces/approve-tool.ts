@@ -1,6 +1,6 @@
-export interface ApproveTool {
+export interface SetStateTool {
   /** Tool Id */
   tool_id: number;
   /** Approved or not */
-  approved: boolean;
+  state: number;
 }

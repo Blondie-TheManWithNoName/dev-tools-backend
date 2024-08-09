@@ -8,11 +8,8 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Favorite } from './favorites';
 import { Tag } from './tag';
 import { IsDefined } from 'class-validator';
-import { User } from './user';
-import { ToolState } from './tool_state';
 import { Tool } from './tool';
 
 @Entity()
@@ -29,7 +26,7 @@ export class ToolInfo {
   @IsDefined()
   title: string;
 
-  @Column({ unique: true })
+  @Column({ unique: false })
   @IsDefined()
   url: string;
 
@@ -38,7 +35,7 @@ export class ToolInfo {
 
   @ManyToMany(() => Tag, (tag) => tag.tools)
   @JoinTable({
-    name: 'tool_tags', // Custom join table name
+    name: 'tool_tags',
     joinColumns: [
       { name: 'tool_id', referencedColumnName: 'tool_id' },
       { name: 'valid', referencedColumnName: 'valid' },
@@ -48,5 +45,5 @@ export class ToolInfo {
   tags: Tag[];
 
   @PrimaryColumn('boolean')
-  valid: boolean; // Part of the composite key
+  valid: boolean;
 }

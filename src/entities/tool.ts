@@ -23,12 +23,15 @@ export class Tool {
 
   // @PrimaryColumn({ name: 'state_id', type: 'number' })
   @ManyToOne(() => ToolState, (toolState) => toolState.state_id)
+  @IsDefined()
   // @JoinColumn({ name: 'state_id' })
   state: ToolState;
 
   @ManyToOne(() => User, (user) => user.user_id)
+  @IsDefined()
   posted_by: User;
 
   @OneToMany(() => Favorite, (favorite) => favorite.tool)
+  @IsDefined()
   favorites: Favorite[];
 }

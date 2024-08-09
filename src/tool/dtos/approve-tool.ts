@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsDefined, IsNumber } from 'class-validator';
+import { IsBoolean, IsDefined, IsEnum, IsNumber } from 'class-validator';
+import { ToolStateEnum } from 'src/enums/tool-state';
 
-export class ApproveToolDTO {
-  /** Approved or not */
-  @ApiProperty({ required: true, type: Boolean })
+export class SetStateToolDTO {
+  /** State */
+  @ApiProperty({ required: true, type: Number })
   @IsDefined()
-  @IsBoolean()
-  approved: boolean;
+  @IsEnum(ToolStateEnum)
+  state: number;
 }

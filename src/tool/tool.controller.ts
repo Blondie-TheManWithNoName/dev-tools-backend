@@ -16,9 +16,11 @@ import { Response } from 'express';
 import { ToolService } from './tool.service';
 import { CreateToolDTO } from './dtos/create-tool';
 import { UpdateToolDTO } from './dtos/update-tool';
-import { ApproveToolDTO } from './dtos/approve-tool';
+import { SetStateToolDTO } from './dtos/approve-tool';
 import { AuthRequest } from 'src/app.interfaces';
 import { UserGuard } from 'src/guards/user.guard';
+import { AdminGuard } from 'src/guards/admin.guard';
+import { ToolStateEnum } from 'src/enums/tool-state';
 
 @ApiTags('Tools')
 @Controller('tools')
@@ -90,22 +92,23 @@ export class ToolController {
   }
 
   /**
-   * Approves a tool
-   * [PUT] /tools/:id/approve
+   * Set a tool state
+   * [PUT] /tools/:id/state
    */
-  @Put(':id/approve')
+  @Put(':id/state')
   @ApiOperation({ summary: 'Approves or dispproves a tool' })
-  @UseGuards(UserGuard)
-  async approveTool(
-    @Req() _req: Request,
+  @UseGuards(UserGuard) //, AdminGuard)
+  async setStateTool(
+    @Req() req: AuthRequest,
     @Res() res: Response,
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: ApproveToolDTO,
+    @Body() body: SetStateToolDTO,
   ) {
     const data = { tool_id: id, ...body };
-    const response = await this.toolService.approveTool(data);
+    const response = await this.toolService.setStateTool(data, req.user);
     res.status(response.httpStatus).json(response);
   }
+
   /**
    * Deletes a tool
    * [DELETE] /tools/:id
