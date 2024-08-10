@@ -123,4 +123,23 @@ export class ToolController {
     const response = await this.toolService.deleteTool(id);
     res.status(response.httpStatus).json(response);
   }
+  /**
+   * Adds a tag
+   * [POST] /tools/:id/tags/:id
+   */
+  @Post(':id/tags/:tagId')
+  @ApiOperation({ summary: 'Add tag to tool' })
+  @UseGuards(UserGuard)
+  async addTag(
+    @Req() req: AuthRequest,
+    @Res() res: Response,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('tagId', ParseIntPipe) tagId: number,
+  ): Promise<void> {
+    const data = { id, tagId };
+    console.log('YES');
+    const response = await this.toolService.addTag(data, req.user);
+    res.status(response.httpStatus).json(response);
+  }
+
 }

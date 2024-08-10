@@ -16,6 +16,7 @@ import { ToolState } from 'src/entities/tool_state';
 import { ProcessTool } from 'src/entities/process_tool';
 import { ToolInfo } from 'src/entities/tool_info';
 import { UserTypeEnum } from 'src/enums/user-type';
+import { Tag } from 'src/entities/tag';
 
 @Injectable()
 export class ToolService {
@@ -27,6 +28,8 @@ export class ToolService {
     private readonly toolStateRepo: Repository<ToolState>,
     @InjectRepository(ProcessTool)
     private readonly processToolRepo: Repository<ProcessTool>,
+    @InjectRepository(Tag)
+    private readonly tagRepo: Repository<Tag>,
   ) {}
   async getAllTools() {
     const [tools, count] = await this.toolsInfoRepo.findAndCount({
@@ -55,53 +58,33 @@ export class ToolService {
   }
 
   async getTool(id: number, user) {
-    if (user === undefined) {
-      const tool = await this.toolsInfoRepo.findOne({
-        where: {
-          tool_id: id,
-          valid: true,
-          tool: {
-            state: {
-              state_id: In([ToolStateEnum.approved, ToolStateEnum.updated]),
-            },
-          },
-        },
-        relations: ['tool'],
-      });
-      if (tool) {
-        return {
-          httpStatus: HttpStatus.OK,
-          tool: tool,
-        };
-      } else throw new NotFoundException();
-    } else {
-      const tool = await this.toolsInfoRepo
-        .createQueryBuilder('toolInfo')
-        .leftJoinAndSelect('toolInfo.tool', 'tool')
-        .where('toolInfo.tool_id = :id', { id })
-        .andWhere('toolInfo.valid = :valid', { valid: true })
-        .andWhere(
-          new Brackets((qb) => {
-            if (user.type?.type_id === UserTypeEnum.admin) {
-              return;
-            } else {
-              qb.where('tool.state.state_id IN (:...states)', {
-                states: [ToolStateEnum.approved, ToolStateEnum.updated],
-              }).orWhere('tool.posted_by.user_id = :user_id', {
-                user_id: user.user_id,
-              });
-            }
-          }),
-        )
-        .getOne();
+    const tool = await this.toolsInfoRepo
+      .createQueryBuilder('toolInfo')
+      .leftJoinAndSelect('toolInfo.tool', 'tool')
+      .leftJoinAndSelect('toolInfo.tags', 'tags')
+      .where('toolInfo.tool_id = :id', { id })
+      .andWhere('toolInfo.valid = :valid', { valid: true })
+      .andWhere(
+        new Brackets((qb) => {
+          if (user !== undefined && user.type?.type_id === UserTypeEnum.admin) {
+            return;
+          } else {
+            qb.where('tool.state.state_id IN (:...states)', {
+              states: [ToolStateEnum.approved, ToolStateEnum.updated],
+            }).orWhere('tool.posted_by.user_id = :user_id', {
+              user_id: user?.user_id,
+            });
+          }
+        }),
+      )
+      .getOne();
 
-      if (tool) {
-        return {
-          httpStatus: HttpStatus.OK,
-          tool: tool,
-        };
-      } else throw new NotFoundException();
-    }
+    if (tool) {
+      return {
+        httpStatus: HttpStatus.OK,
+        tool: tool,
+      };
+    } else throw new NotFoundException();
   }
 
   async createTool(data: CreateTool, user) {
@@ -234,4 +217,49 @@ export class ToolService {
       };
     } else throw new NotFoundException();
   }
+
+  //#region TAG
+
+  async addTag(data, user) {
+    console.log('HOLA');
+    const toolInfo = await this.toolsInfoRepo
+      .createQueryBuilder('toolInfo')
+      .leftJoinAndSelect('toolInfo.tool', 'tool')
+      .leftJoinAndSelect('toolInfo.tags', 'tags')
+      .where('toolInfo.tool_id = :id', { id: data.id })
+      .andWhere('toolInfo.valid = :valid', { valid: true })
+      .andWhere(
+        new Brackets((qb) => {
+          if (user.type?.type_id === UserTypeEnum.admin) {
+            return;
+          } else {
+            qb.where('tool.posted_by.user_id = :user_id', {
+              user_id: user?.user_id,
+            });
+          }
+        }),
+      )
+      .getOne();
+
+    if (!toolInfo) throw new NotFoundException(`Tool not found`);
+
+    // Fetch the Tag entity
+    const tag = await this.tagRepo.findOne({ where: { tag_id: data.tagId } });
+    if (!tag) throw new NotFoundException(`Tag not found`);
+
+    // Add the Tag to ToolInfo's tags array if it's not already added
+    if (
+      !toolInfo.tags.find((existingTag) => existingTag.tag_id === tag.tag_id)
+    ) {
+      toolInfo.tags.push(tag);
+      this.toolsInfoRepo.save(toolInfo);
+    } else throw new ConflictException(`Tag already added`);
+
+    return {
+      httpStatus: HttpStatus.OK,
+      message: 'Success!',
+      tag: tag,
+    };
+  }
+
 }
