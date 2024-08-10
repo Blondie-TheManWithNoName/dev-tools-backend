@@ -221,7 +221,6 @@ export class ToolService {
   //#region TAG
 
   async addTag(data, user) {
-    console.log('HOLA');
     const toolInfo = await this.toolsInfoRepo
       .createQueryBuilder('toolInfo')
       .leftJoinAndSelect('toolInfo.tool', 'tool')
@@ -262,4 +261,41 @@ export class ToolService {
     };
   }
 
+  async removeTag(data, user) {
+    const toolInfo = await this.toolsInfoRepo
+      .createQueryBuilder('toolInfo')
+      .leftJoinAndSelect('toolInfo.tool', 'tool')
+      .leftJoinAndSelect('toolInfo.tags', 'tags')
+      .where('toolInfo.tool_id = :id', { id: data.id })
+      .andWhere('toolInfo.valid = :valid', { valid: true })
+      .andWhere(
+        new Brackets((qb) => {
+          if (user.type?.type_id === UserTypeEnum.admin) {
+            return;
+          } else {
+            qb.where('tool.posted_by.user_id = :user_id', {
+              user_id: user?.user_id,
+            });
+          }
+        }),
+      )
+      .getOne();
+
+    if (!toolInfo) throw new NotFoundException(`Tool not found`);
+
+    // Fetch the Tag entity
+    const tag = await this.tagRepo.findOne({ where: { tag_id: data.tagId } });
+    if (!tag) throw new NotFoundException(`Tag not found`);
+
+    const index = toolInfo.tags.findIndex((t) => t.tag_id === tag.tag_id);
+    toolInfo.tags.splice(index, 1);
+
+    if (index === -1) this.toolsInfoRepo.save(toolInfo);
+
+    return {
+      httpStatus: HttpStatus.OK,
+      message: 'Success!',
+      tag: tag,
+    };
+  }
 }

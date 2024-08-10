@@ -142,4 +142,21 @@ export class ToolController {
     res.status(response.httpStatus).json(response);
   }
 
+  /**
+   * Removes a tag from a tool
+   * [DELETE] /tools/:id/tags/:id
+   */
+  @Delete(':id/tags/:tagId')
+  @ApiOperation({ summary: 'Add tag to tool' })
+  @UseGuards(UserGuard)
+  async removeTag(
+    @Req() req: AuthRequest,
+    @Res() res: Response,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('tagId', ParseIntPipe) tagId: number,
+  ): Promise<void> {
+    const data = { id, tagId };
+    const response = await this.toolService.removeTag(data, req.user);
+    res.status(response.httpStatus).json(response);
+  }
 }
