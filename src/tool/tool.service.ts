@@ -38,6 +38,7 @@ export class ToolService {
         title: true,
         url: true,
         description: true,
+        tags: true,
       },
       where: {
         valid: true,
@@ -47,7 +48,7 @@ export class ToolService {
           },
         },
       },
-      relations: ['tool'],
+      relations: ['tool', 'tags'],
     });
 
     return {
