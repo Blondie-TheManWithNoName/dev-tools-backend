@@ -93,7 +93,10 @@ export class ToolService {
       const tool = await this.toolsRepo.save({
         posted_by: user,
         state: await this.toolStateRepo.findOneBy({
-          state_id: ToolStateEnum.pending,
+          state_id:
+            user.type.type_id === UserTypeEnum.admin
+              ? ToolStateEnum.approved
+              : ToolStateEnum.pending,
         }),
       });
 

@@ -7,7 +7,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Favorite } from 'src/entities/favorites';
 import { Repository } from 'typeorm';
-import { DeleteFavorite } from './interfaces/delete-favorite';
 import { ProcessTool } from 'src/entities/process_tool';
 
 @Injectable()
