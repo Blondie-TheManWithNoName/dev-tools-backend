@@ -66,7 +66,7 @@ export class TagController {
    * [PUT] /tags/:id
    */
   @Put(':id')
-  @ApiOperation({ summary: 'Updates a tool' })
+  @ApiOperation({ summary: 'Updates a tag' })
   async updateTag(
     @Req() _req: Request,
     @Res() res: Response,
