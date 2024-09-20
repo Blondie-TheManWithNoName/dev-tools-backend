@@ -7,7 +7,7 @@ import { dbConnection } from './database';
 import { ToolModule } from './tool/tool.module';
 import { TagModule } from './tag/tag.module';
 import { AuthModule } from './auth/auth.module';
-import { FavoritesModule } from './favorites/favorites.module';
+import { ProcessModule } from './process/process.module';
 @Module({
   imports: [
     UserModule,
@@ -23,7 +23,7 @@ import { FavoritesModule } from './favorites/favorites.module';
     ToolModule,
     TagModule,
     AuthModule,
-    FavoritesModule,
+    ProcessModule,
   ],
   controllers: [AppController],
   providers: [AppService],

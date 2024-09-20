@@ -26,6 +26,7 @@ export class ToolInfo {
   @IsDefined()
   title: string;
 
+  @PrimaryColumn()
   @Column({ unique: false })
   @IsDefined()
   url: string;
