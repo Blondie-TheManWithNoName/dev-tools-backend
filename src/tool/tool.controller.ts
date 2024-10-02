@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -22,6 +23,7 @@ import { UserGuard } from 'src/guards/user.guard';
 import { AdminGuard } from 'src/guards/admin.guard';
 import { ToolStateEnum } from 'src/enums/tool-state';
 import { OptionalUserGuard } from 'src/guards/optUser.guard';
+import { ToolFiltersDTO } from './dtos/get-tools';
 
 @ApiTags('Tools')
 @Controller('tools')
@@ -34,8 +36,12 @@ export class ToolController {
    */
   @Get()
   @ApiOperation({ summary: 'Get all tools' })
-  async getAllTools(@Req() _req: Request, @Res() res: Response) {
-    const response = await this.toolService.getAllTools();
+  async getAllTools(
+    @Req() _req: Request,
+    @Res() res: Response,
+    @Query() query: ToolFiltersDTO,
+  ) {
+    const response = await this.toolService.getAllTools(query);
     res.status(response.httpStatus).json(response);
   }
 
@@ -123,6 +129,25 @@ export class ToolController {
     const response = await this.toolService.deleteTool(id);
     res.status(response.httpStatus).json(response);
   }
+
+  //#region TAGS
+  /**
+   * Get tool tags
+   * [GET] /tools/:id/tags
+   */
+  // @Post(':id/tags')
+  // @ApiOperation({ summary: 'Get tool tags' })
+  // // @UseGuards(UserGuard)
+  // async getTags(
+  //   @Req() req: AuthRequest,
+  //   @Res() res: Response,
+  //   @Param('id', ParseIntPipe) id: number,
+  // ): Promise<void> {
+  //   const data = { id };
+  //   const response = await this.toolService.getTags(data, req.user);
+  //   res.status(response.httpStatus).json(response);
+  // }
+
   /**
    * Adds a tag
    * [POST] /tools/:id/tags/:id

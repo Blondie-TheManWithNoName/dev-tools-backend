@@ -17,6 +17,7 @@ import { ProcessTool } from 'src/entities/process_tool';
 import { ToolInfo } from 'src/entities/tool_info';
 import { UserTypeEnum } from 'src/enums/user-type';
 import { Tag } from 'src/entities/tag';
+import { ToolFilters } from './dtos/get-tools';
 
 @Injectable()
 export class ToolService {
@@ -31,25 +32,46 @@ export class ToolService {
     @InjectRepository(Tag)
     private readonly tagRepo: Repository<Tag>,
   ) {}
-  async getAllTools() {
-    const [tools, count] = await this.toolsInfoRepo.findAndCount({
-      select: {
-        tool_id: true,
-        title: true,
-        url: true,
-        description: true,
-        tags: true,
-      },
-      where: {
-        valid: true,
-        tool: {
-          state: {
-            state_id: In([ToolStateEnum.approved, ToolStateEnum.updated]),
-          },
-        },
-      },
-      relations: ['tool', 'tags'],
-    });
+  async getAllTools(data: ToolFilters) {
+    const queryTools = await this.toolsInfoRepo
+      .createQueryBuilder('toolInfo')
+      .leftJoinAndSelect('toolInfo.tool', 'tool')
+      .leftJoinAndSelect('toolInfo.tags', 'tags')
+      .where('tool.state  IN(:states)', {
+        states: [ToolStateEnum.approved, ToolStateEnum.updated],
+      });
+
+    // const [tools, count] = await this.toolsInfoRepo.findAndCount({
+    //   select: {
+    //     tool_id: true,
+    //     title: true,
+    //     url: true,
+    //     description: true,
+    //     tags: true,
+    //   },
+    //   where: {
+    //     valid: true,
+    //     tool: {
+    //       state: {
+    //         state_id: In([ToolStateEnum.approved, ToolStateEnum.updated]),
+    //       },
+    //     },
+    //   },
+    //   relations: ['tool', 'tags'],
+    // });
+
+    // if (data) {
+    //   switch (key) {
+    //     case 'tags':
+    //       queryTools.andWhere('tags HAVING(:tags)', { tags: data.tags });
+    //       break;
+
+    //     default:
+    //       break;
+    //   }
+    // }
+
+    const [tools, count] = await queryTools.getManyAndCount();
 
     return {
       httpStatus: HttpStatus.OK,
