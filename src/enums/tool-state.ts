@@ -1,6 +1,6 @@
 export enum ToolStateEnum {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
-  UPDATED = 'updated',
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  UPDATED = 'UPDATED',
 }
