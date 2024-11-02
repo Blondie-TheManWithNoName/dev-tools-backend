@@ -4,6 +4,8 @@ import {
   Column,
   OneToMany,
   ManyToOne,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Favorite } from './favorites';
 import { IsDefined } from 'class-validator';
@@ -48,4 +50,31 @@ export class User {
     },
   })
   type: keyof typeof UserTypeEnum;
+
+  /** Followers Count */
+  @Column({ type: 'int', default: 0 })
+  followerCount: number;
+
+  /** Following Count */
+  @Column({ type: 'int', default: 0 })
+  followingCount: number;
+
+  /** Followers */
+  @ManyToMany(() => User, (user) => user.following)
+  @JoinTable({
+    name: 'user_followers',
+    joinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'user_id',
+    },
+    inverseJoinColumn: {
+      name: 'follower_id',
+      referencedColumnName: 'user_id',
+    },
+  })
+  followers: User[];
+
+  /** Following */
+  @ManyToMany(() => User, (user) => user.followers)
+  following: User[];
 }
