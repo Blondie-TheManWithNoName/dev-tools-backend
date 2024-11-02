@@ -86,6 +86,6 @@ export class AuthService {
 
   async validateAdmin(id: number): Promise<boolean> {
     const user = await this.usersRepo.findOneBy({ user_id: id });
-    return user.type.type_id === UserTypeEnum.admin ? true : false;
+    return user.type === UserTypeEnum.ADMIN ? true : false;
   }
 }

@@ -39,7 +39,7 @@ export class User {
   @Column('tinyint', {
     width: 1,
     nullable: false,
-    default: () => 2,
+    default: 2,
     name: 'type',
     transformer: {
       to: (value: string) =>

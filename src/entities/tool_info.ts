@@ -16,10 +16,10 @@ import { Tool } from './tool';
 export class ToolInfo {
   @PrimaryColumn()
   @IsDefined()
-  tool_id: number;
+  id: number;
 
-  @ManyToOne(() => Tool, (tool) => tool.tool_id)
-  @JoinColumn({ name: 'tool_id' })
+  @ManyToOne(() => Tool, (tool) => tool.id)
+  @JoinColumn({ name: 'id' })
   tool: Tool;
 
   @Column()
@@ -38,7 +38,7 @@ export class ToolInfo {
   @JoinTable({
     name: 'tool_tags',
     joinColumns: [
-      { name: 'tool_id', referencedColumnName: 'tool_id' },
+      { name: 'id', referencedColumnName: 'id' },
       { name: 'valid', referencedColumnName: 'valid' },
     ],
     inverseJoinColumns: [{ name: 'tag_id', referencedColumnName: 'tag_id' }],

@@ -8,7 +8,7 @@ export class UserTypes1723058041158 implements MigrationInterface {
       .insert()
       .into('user_type')
       .values([
-        { type: 'admin', type_id: 1 },
+        { type: 'ADMIN', type_id: 1 },
         { type: 'client', type_id: 2 },
       ])
       .execute();

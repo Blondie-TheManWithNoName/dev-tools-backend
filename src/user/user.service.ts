@@ -115,7 +115,7 @@ export class UserService {
         user_id: data.user_id,
       });
       if (userCheck) {
-        const tool = await this.toolRepo.findOneBy({ tool_id: data.toolId });
+        const tool = await this.toolRepo.findOneBy({ id: data.toolId });
         if (tool) {
           console.log('data', data);
           const favorite = await this.favoriteRepo.save({ user, tool });

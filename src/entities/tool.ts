@@ -15,13 +15,13 @@ export class Tool {
   /** ID */
   @PrimaryGeneratedColumn()
   @IsDefined()
-  tool_id: number;
+  id: number;
 
   /** State */
   @Column('tinyint', {
     width: 1,
     nullable: false,
-    default: () => 1,
+    default: 1,
     name: 'state',
     transformer: {
       to: (value: string) =>

@@ -1,5 +1,3 @@
-import { ToolState } from 'src/entities/tool_state';
-
 export interface UpdateToolInfo {
   /** Tool Id */
   tool_id: number;

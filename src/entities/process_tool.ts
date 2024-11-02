@@ -24,7 +24,7 @@ export class ProcessTool {
   id: number;
 
   /** Tool State */
-  @ManyToOne(() => Tool, (tool) => tool.tool_id)
+  @ManyToOne(() => Tool, (tool) => tool.id)
   @JoinColumn({ name: 'tool_id' })
   tool: Tool;
 
@@ -32,7 +32,7 @@ export class ProcessTool {
   @Column('tinyint', {
     width: 1,
     nullable: false,
-    default: () => 1,
+    default: 1,
     name: 'prev_state',
     transformer: {
       to: (value: string) =>
@@ -46,7 +46,7 @@ export class ProcessTool {
   @Column('tinyint', {
     width: 1,
     nullable: false,
-    default: () => 1,
+    default: 1,
     name: 'state',
     transformer: {
       to: (value: string) =>

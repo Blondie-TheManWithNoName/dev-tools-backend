@@ -8,10 +8,10 @@ export class ToolStates1723058316437 implements MigrationInterface {
       .insert()
       .into('tool_state')
       .values([
-        { state: 'pending', state_id: 1 },
-        { state: 'approved', state_id: 2 },
+        { state: 'PENDING', state_id: 1 },
+        { state: 'APPROVED', state_id: 2 },
         { state: 'rejected', state_id: 3 },
-        { state: 'updated', state_id: 4 },
+        { state: 'UPDATED', state_id: 4 },
       ])
       .execute();
   }

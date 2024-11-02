@@ -7,5 +7,5 @@ export class SetStateToolDTO {
   @ApiProperty({ required: true, type: Number })
   @IsDefined()
   @IsEnum(ToolStateEnum)
-  state: number;
+  state: keyof typeof ToolStateEnum;
 }

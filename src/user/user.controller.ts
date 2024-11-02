@@ -19,7 +19,7 @@ import { UpdateUserDTO } from './dtos/update-user';
 import { AddFavoriteDTO } from './dtos/add-favorite';
 import { UserGuard } from 'src/guards/user.guard';
 import { AuthRequest } from 'src/app.interfaces';
-import { AdminGuard } from 'src/guards/admin.guard';
+import { AdminGuard } from 'src/guards/ADMIN.guard';
 
 @ApiTags('User')
 @Controller('users')

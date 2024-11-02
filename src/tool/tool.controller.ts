@@ -20,7 +20,7 @@ import { UpdateToolDTO } from './dtos/update-tool';
 import { SetStateToolDTO } from './dtos/approve-tool';
 import { AuthRequest } from 'src/app.interfaces';
 import { UserGuard } from 'src/guards/user.guard';
-import { AdminGuard } from 'src/guards/admin.guard';
+import { AdminGuard } from 'src/guards/ADMIN.guard';
 import { ToolStateEnum } from 'src/enums/tool-state';
 import { OptionalUserGuard } from 'src/guards/optUser.guard';
 import { ToolFiltersDTO } from './dtos/get-tools';
