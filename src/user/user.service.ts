@@ -58,7 +58,7 @@ export class UserService {
     } else throw new ConflictException('User alredy exists');
   }
 
-  async updateUser(data: UpdateUser, user) {
+  async updateUser(data: UpdateUser, user: User) {
     if (user.user_id === data.user_id) {
       const userExist = await this.userRepo.findOneBy({
         user_id: data.user_id,
@@ -109,7 +109,7 @@ export class UserService {
     } else throw new NotFoundException('User not found');
   }
 
-  async addFavorite(data, user) {
+  async addFavorite(data, user: User) {
     if (user.user_id === data.user_id) {
       const userCheck = await this.userRepo.findOneBy({
         user_id: data.user_id,
@@ -130,5 +130,25 @@ export class UserService {
       throw new UnauthorizedException(
         'User not authorized to delete this favorite',
       );
+  }
+
+  async followUser(user: User, targetUserId: number) {
+    const targetUser = await this.userRepo.findOneBy({ user_id: targetUserId });
+    if (!targetUser) throw new NotFoundException('User not found');
+
+    user.following.push(targetUser);
+    targetUser.followers.push(user);
+
+    // Update counts
+    user.followingCount++;
+    targetUser.followerCount++;
+
+    await this.userRepo.save([user, targetUser]);
+
+    return {
+      httpStatus: HttpStatus.OK,
+      following: user.followingCount,
+      followedUser: targetUser,
+    };
   }
 }

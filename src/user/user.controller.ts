@@ -134,4 +134,20 @@ export class UserController {
     const response = await this.userService.addFavorite(data, req.user);
     res.status(response.httpStatus).json(response);
   }
+
+  /**
+   * Adds a favorite
+   * [POST] /users/:id/favorites
+   */
+  @Post('follow/:id')
+  @ApiOperation({ summary: 'Follow a user' })
+  @UseGuards(UserGuard)
+  async followUser(
+    @Req() req: AuthRequest,
+    @Res() res: Response,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const response = await this.userService.followUser(req.user, id);
+    res.status(response.httpStatus).json(response);
+  }
 }
