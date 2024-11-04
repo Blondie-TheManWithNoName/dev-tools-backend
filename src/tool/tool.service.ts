@@ -30,13 +30,17 @@ export class ToolService {
     private readonly tagRepo: Repository<Tag>,
   ) {}
   async getAllTools(data: ToolFilters) {
+    const states = [
+      Object.keys(ToolStateEnum).indexOf(ToolStateEnum.APPROVED) + 1,
+      Object.keys(ToolStateEnum).indexOf(ToolStateEnum.UPDATED) + 1,
+    ];
+
     const queryTools = await this.toolsInfoRepo
       .createQueryBuilder('toolInfo')
       .leftJoinAndSelect('toolInfo.tool', 'tool')
       .leftJoinAndSelect('toolInfo.tags', 'tags')
-      .where('tool.state  IN(:states)', {
-        states: [ToolStateEnum.APPROVED, ToolStateEnum.UPDATED],
-      });
+      .where('tool.state IN(:states)', { states })
+      .andWhere('toolInfo.valid = true');
 
     // const [tools, count] = await this.toolsInfoRepo.findAndCount({
     //   select: {
@@ -82,7 +86,7 @@ export class ToolService {
       .createQueryBuilder('toolInfo')
       .leftJoinAndSelect('toolInfo.tool', 'tool')
       .leftJoinAndSelect('toolInfo.tags', 'tags')
-      .where('toolInfo.tool_id = :id', { id })
+      .where('toolInfo.id = :id', { id })
       .andWhere('toolInfo.valid = :valid', { valid: true })
       .andWhere(
         new Brackets((qb) => {
@@ -118,12 +122,12 @@ export class ToolService {
       });
 
       const toolInfo = await this.toolsInfoRepo.save({
-        tool_id: tool.id,
+        id: tool.id,
         valid: true,
         ...data,
       });
       await this.toolsInfoRepo.save({
-        tool_id: tool.id,
+        id: tool.id,
         valid: false,
         ...data,
       });
@@ -134,6 +138,7 @@ export class ToolService {
         toolInfo: toolInfo,
       };
     } catch (error) {
+      console.log('error', error);
       if (error.code === 'ER_DUP_ENTRY')
         throw new ConflictException('Duplicated tool');
       else throw error;
@@ -143,7 +148,7 @@ export class ToolService {
   async updateTool(data: UpdateToolInfo, user: User) {
     const tool = await this.toolsRepo.findOne({
       where: { id: data.tool_id },
-      relations: ['state', 'posted_by', 'favorites'],
+      relations: ['posted_by', 'favorites'],
     });
     if (tool) {
       // Change tool status
@@ -175,12 +180,12 @@ export class ToolService {
   async setStateTool(data: SetStateTool, user) {
     const oldTool = await this.toolsRepo.findOne({
       where: { id: data.tool_id },
-      relations: ['state', 'posted_by', 'favorites'],
+      relations: ['posted_by', 'favorites'],
     });
     if (oldTool) {
       // Change tool status
       await this.toolsRepo.save({
-        tool_id: data.tool_id,
+        id: data.tool_id,
         state: data.state,
       });
 
