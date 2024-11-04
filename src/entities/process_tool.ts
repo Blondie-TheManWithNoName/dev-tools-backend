@@ -24,7 +24,7 @@ export class ProcessTool {
   id: number;
 
   /** Tool State */
-  @ManyToOne(() => Tool, (tool) => tool.id)
+  @ManyToOne(() => Tool, (tool) => tool.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tool_id' })
   tool: Tool;
 

@@ -18,7 +18,7 @@ export class ToolInfo {
   @IsDefined()
   id: number;
 
-  @ManyToOne(() => Tool, (tool) => tool.id)
+  @ManyToOne(() => Tool, (tool) => tool.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id' })
   tool: Tool;
 
