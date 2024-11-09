@@ -163,6 +163,43 @@ export class UserService {
     };
   }
 
+  async removeFavorite(data, user: User) {
+    if (user.user_id !== data.user_id) {
+      throw new UnauthorizedException(
+        'User not authorized to remove this favorite',
+      );
+    }
+
+    const toolInfo = await this.toolInfoRepo.findOne({
+      where: { id: data.toolId },
+      relations: ['tool'],
+    });
+    if (!toolInfo) {
+      throw new NotFoundException('Tool not found');
+    }
+
+    const favorite = await this.favoriteRepo.findOne({
+      where: { user: user, tool: toolInfo.tool },
+    });
+    if (!favorite) {
+      throw new NotFoundException('Favorite not found');
+    }
+
+    // Decrement numFavorites if greater than zero to prevent negative values
+    if (toolInfo.tool.numFavorites > 0) {
+      toolInfo.tool.numFavorites -= 1;
+      await this.toolRepo.save(toolInfo.tool);
+    }
+
+    await this.favoriteRepo.delete(favorite.fav_id);
+
+    return {
+      httpStatus: HttpStatus.OK,
+      message: 'Removed!',
+      updatedTool: toolInfo.tool, // Optional: include updated tool information
+    };
+  }
+
   async followUser(user: User, targetUserId: number) {
     const targetUser = await this.userRepo.findOneBy({ user_id: targetUserId });
     if (!targetUser) throw new NotFoundException('User not found');

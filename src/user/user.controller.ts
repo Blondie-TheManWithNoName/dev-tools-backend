@@ -137,7 +137,7 @@ export class UserController {
    * Adds a favorite
    * [POST] /users/:id/favorites
    */
-  @Post(':id/favorites')
+  @Post(':id/favorites/add')
   @ApiOperation({ summary: 'Adds a favorite to user' })
   @UseGuards(UserGuard)
   async addFavorite(
@@ -148,6 +148,25 @@ export class UserController {
   ) {
     const data = { user_id: id, ...body };
     const response = await this.userService.addFavorite(data, req.user);
+    res.status(response.httpStatus).json(response);
+  }
+
+  /**
+   * Adds a favorite
+   * [POST] /users/:id/favorites
+   */
+  @Post(':id/favorites/remove')
+  @ApiOperation({ summary: 'Removes a favorite to user' })
+  @UseGuards(UserGuard)
+  async removeFavorite(
+    @Req() req: AuthRequest,
+    @Res() res: Response,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: AddFavoriteDTO,
+  ) {
+    console.log('HOLA');
+    const data = { user_id: id, ...body };
+    const response = await this.userService.removeFavorite(data, req.user);
     res.status(response.httpStatus).json(response);
   }
 
