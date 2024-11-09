@@ -6,5 +6,5 @@ export class DeleteToolDTO {
   @ApiProperty({ required: true, type: Number })
   @IsDefined()
   @IsInt()
-  tool_id: number;
+  id: number;
 }

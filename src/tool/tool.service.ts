@@ -155,13 +155,13 @@ export class ToolService {
 
   async updateTool(data: UpdateToolInfo, user: User) {
     const tool = await this.toolsRepo.findOne({
-      where: { id: data.tool_id },
+      where: { id: data.id },
       relations: ['posted_by', 'favorites'],
     });
     if (tool) {
       // Change tool status
       await this.toolsRepo.save({
-        tool_id: data.tool_id,
+        id: data.id,
         state: ToolStateEnum.UPDATED,
       });
 
@@ -175,6 +175,8 @@ export class ToolService {
         processed_time: new Date(),
       };
       const processed = await this.processToolRepo.save(processData);
+      console.log('data', data);
+      console.log('hola', await this.toolsInfoRepo.find());
       const newTool = await this.toolsInfoRepo.save(data);
 
       return {
@@ -187,13 +189,13 @@ export class ToolService {
 
   async setStateTool(data: SetStateTool, user: User) {
     const oldTool = await this.toolsRepo.findOne({
-      where: { id: data.tool_id },
+      where: { id: data.id },
       relations: ['posted_by', 'favorites'],
     });
     if (oldTool) {
       // Change tool status
       await this.toolsRepo.save({
-        id: data.tool_id,
+        id: data.id,
         state: data.state,
       });
 
@@ -213,7 +215,7 @@ export class ToolService {
         data.state === ToolStateEnum.APPROVED
       ) {
         const upadtedToolInfo = await this.toolsInfoRepo.findBy({
-          id: data.tool_id,
+          id: data.id,
         });
 
         if (upadtedToolInfo[0].valid) {
@@ -252,7 +254,7 @@ export class ToolService {
       .createQueryBuilder('toolInfo')
       .leftJoinAndSelect('toolInfo.tool', 'tool')
       .leftJoinAndSelect('toolInfo.tags', 'tags')
-      .where('toolInfo.tool_id = :id', { id: data.id })
+      .where('toolInfo.id = :id', { id: data.id })
       .andWhere('toolInfo.valid = :valid', { valid: true })
       .andWhere(
         new Brackets((qb) => {
@@ -293,7 +295,7 @@ export class ToolService {
       .createQueryBuilder('toolInfo')
       .leftJoinAndSelect('toolInfo.tool', 'tool')
       .leftJoinAndSelect('toolInfo.tags', 'tags')
-      .where('toolInfo.tool_id = :id', { id: data.id })
+      .where('toolInfo.id = :id', { id: data.id })
       .andWhere('toolInfo.valid = :valid', { valid: true })
       .andWhere(
         new Brackets((qb) => {

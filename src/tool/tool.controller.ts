@@ -91,7 +91,7 @@ export class ToolController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateToolDTO,
   ) {
-    const data = { tool_id: id, valid: false, ...body };
+    const data = { id: id, valid: false, ...body };
     const response = await this.toolService.updateTool(data, req.user);
     res.status(response.httpStatus).json(response);
   }
@@ -109,7 +109,7 @@ export class ToolController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: SetStateToolDTO,
   ) {
-    const data = { tool_id: id, ...body };
+    const data = { id: id, ...body };
     const response = await this.toolService.setStateTool(data, req.user);
     res.status(response.httpStatus).json(response);
   }

@@ -1,6 +1,6 @@
 export interface UpdateToolInfo {
   /** Tool Id */
-  tool_id: number;
+  id: number;
   /** Title */
   title?: string;
   /** URL */
