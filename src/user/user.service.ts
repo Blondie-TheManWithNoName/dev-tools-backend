@@ -101,6 +101,7 @@ export class UserService {
     if (user) {
       const [favorites, count] = await this.favoriteRepo.findAndCount({
         where: { user: { user_id: id } },
+        relations: ['tool'],
       });
 
       return {
@@ -109,6 +110,25 @@ export class UserService {
         count: count,
       };
     } else throw new NotFoundException('User not found');
+  }
+
+  async getFavorite(id: number, toolId: number) {
+    const user = await this.userRepo.findOne({ where: { user_id: id } });
+    const tool = await this.toolRepo.findOne({ where: { id: toolId } });
+
+    if (!user) throw new NotFoundException('User not found');
+    if (!tool) throw new NotFoundException('Tool not found');
+
+    const favorite = await this.favoriteRepo.findOne({
+      where: { user: { user_id: id }, tool: { id: toolId } },
+    });
+
+    if (!favorite) throw new NotFoundException('Favorite not found');
+
+    return {
+      httpStatus: HttpStatus.OK,
+      favorite: favorite,
+    };
   }
 
   async addFavorite(data, user: User) {

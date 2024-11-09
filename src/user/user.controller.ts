@@ -118,6 +118,22 @@ export class UserController {
   }
 
   /**
+   * Gets user favorites
+   * [GET] /users/:id/favorites
+   */
+  @Get(':id/tool/:toolId')
+  @ApiOperation({ summary: 'Get users favorite' })
+  async getFavorite(
+    @Req() _req: Request,
+    @Res() res: Response,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('toolId', ParseIntPipe) toolId: number,
+  ) {
+    const response = await this.userService.getFavorite(id, toolId);
+    res.status(response.httpStatus).json(response);
+  }
+
+  /**
    * Adds a favorite
    * [POST] /users/:id/favorites
    */
