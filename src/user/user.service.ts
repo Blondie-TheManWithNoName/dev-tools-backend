@@ -20,7 +20,9 @@ import { ToolInfo } from 'src/entities/tool_info';
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
-    @InjectRepository(ToolInfo) private readonly toolRepo: Repository<ToolInfo>,
+    @InjectRepository(ToolInfo)
+    private readonly toolInfoRepo: Repository<ToolInfo>,
+    @InjectRepository(Tool) private readonly toolRepo: Repository<Tool>,
     @InjectRepository(Favorite)
     private readonly favoriteRepo: Repository<Favorite>,
   ) {}
@@ -110,26 +112,35 @@ export class UserService {
   }
 
   async addFavorite(data, user: User) {
-    if (user.user_id === data.user_id) {
-      const userCheck = await this.userRepo.findOneBy({
-        user_id: data.user_id,
-      });
-      if (userCheck) {
-        const tool = await this.toolRepo.findOneBy({ id: data.toolId });
-        if (tool) {
-          console.log('data', data);
-          const favorite = await this.favoriteRepo.save({ user, tool });
-          return {
-            httpStatus: HttpStatus.OK,
-            message: 'Added!',
-            favorite: favorite,
-          };
-        } else throw new NotFoundException('Tool not found');
-      } else throw new NotFoundException('User not found');
-    } else
+    if (user.user_id !== data.user_id) {
       throw new UnauthorizedException(
-        'User not authorized to delete this favorite',
+        'User not authorized to add this favorite',
       );
+    }
+
+    const toolInfo = await this.toolInfoRepo.findOne({
+      where: { id: data.toolId },
+      relations: ['tool'],
+    });
+    if (!toolInfo) {
+      throw new NotFoundException('Tool not found');
+    }
+
+    // Increment numFavorites with an atomic operation if possible, otherwise save the incremented count
+    toolInfo.tool.numFavorites += 1;
+    await this.toolRepo.save(toolInfo.tool);
+
+    const favorite = await this.favoriteRepo.save({
+      user,
+      tool: toolInfo,
+    });
+
+    return {
+      httpStatus: HttpStatus.OK,
+      message: 'Added!',
+      favorite,
+      updatedTool: toolInfo.tool, // Optional: include updated tool information
+    };
   }
 
   async followUser(user: User, targetUserId: number) {

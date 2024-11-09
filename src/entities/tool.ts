@@ -40,4 +40,8 @@ export class Tool {
   @OneToMany(() => Favorite, (favorite) => favorite.tool)
   @IsDefined()
   favorites: Favorite[];
+
+  @Column('int', { default: 0 })
+  @IsDefined()
+  numFavorites: number;
 }

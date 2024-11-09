@@ -74,14 +74,22 @@ export class ToolService {
 
     const [tools, count] = await queryTools.getManyAndCount();
 
+    const toolsClean = tools.map((tool) => {
+      return {
+        ...tool,
+        tool: undefined,
+        numFavorites: tool.tool.numFavorites,
+      };
+    });
+
     return {
       httpStatus: HttpStatus.OK,
       count: count,
-      tools: tools,
+      tools: toolsClean,
     };
   }
 
-  async getTool(id: number, user) {
+  async getTool(id: number, user: User) {
     const tool = await this.toolsInfoRepo
       .createQueryBuilder('toolInfo')
       .leftJoinAndSelect('toolInfo.tool', 'tool')
@@ -90,7 +98,7 @@ export class ToolService {
       .andWhere('toolInfo.valid = :valid', { valid: true })
       .andWhere(
         new Brackets((qb) => {
-          if (user !== undefined && user.type?.type_id === UserTypeEnum.ADMIN) {
+          if (user !== undefined && user.type === UserTypeEnum.ADMIN) {
             return;
           } else {
             qb.where('tool.state.state_id IN (:...states)', {
@@ -177,7 +185,7 @@ export class ToolService {
     } else throw new NotFoundException();
   }
 
-  async setStateTool(data: SetStateTool, user) {
+  async setStateTool(data: SetStateTool, user: User) {
     const oldTool = await this.toolsRepo.findOne({
       where: { id: data.tool_id },
       relations: ['posted_by', 'favorites'],
