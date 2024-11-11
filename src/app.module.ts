@@ -8,6 +8,7 @@ import { ToolModule } from './tool/tool.module';
 import { TagModule } from './tag/tag.module';
 import { AuthModule } from './auth/auth.module';
 import { ProcessModule } from './process/process.module';
+import { KitModule } from './kit/kit.module';
 @Module({
   imports: [
     UserModule,
@@ -24,6 +25,7 @@ import { ProcessModule } from './process/process.module';
     TagModule,
     AuthModule,
     ProcessModule,
+    KitModule,
   ],
   controllers: [AppController],
   providers: [AppService],
