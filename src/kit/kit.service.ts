@@ -6,6 +6,7 @@ import { ToolInfo } from 'src/entities/tool_info';
 import { Repository } from 'typeorm';
 import { Kit } from 'src/entities/kit';
 import { GetKitData } from './interfaces/get-kit.interface';
+import { CreateKitData } from './interfaces/create-kit.interface';
 import { GetKitsData } from './interfaces/get-kits.interface';
 import { ToolStateEnum } from 'src/enums/tool-state';
 
@@ -57,6 +58,22 @@ export class KitService {
     const kit = await this.kitRepo.findOneBy({ id: kitId });
     if (!kit) throw new NotFoundException('Kit not found');
 
+    return {
+      httpStatus: HttpStatus.OK,
+      kit,
+    };
+  }
+
+  async createKit(data: CreateKitData, user: User) {
+    // Cheeck Tools existance
+    await Promise.all(
+      data.tools.map(async (tool) => {
+        const foundTool = await this.toolsRepo.findOneBy({ id: tool.id });
+        if (!foundTool) throw new NotFoundException('Tool not found');
+      }),
+    );
+
+    const kit = await this.kitRepo.save({ ...data, user });
     return {
       httpStatus: HttpStatus.OK,
       kit,
