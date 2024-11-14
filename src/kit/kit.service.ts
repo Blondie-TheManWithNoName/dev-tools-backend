@@ -5,6 +5,7 @@ import { Tool } from 'src/entities/tool';
 import { ToolInfo } from 'src/entities/tool_info';
 import { Repository } from 'typeorm';
 import { Kit } from 'src/entities/kit';
+import { GetKitData } from './interfaces/get-kit.interface';
 import { GetKitsData } from './interfaces/get-kits.interface';
 import { ToolStateEnum } from 'src/enums/tool-state';
 
@@ -47,6 +48,18 @@ export class KitService {
       httpStatus: HttpStatus.OK,
       count,
       kits,
+    };
+  }
+
+  async getKit(data: GetKitData, user: User) {
+    const { kitId } = data;
+
+    const kit = await this.kitRepo.findOneBy({ id: kitId });
+    if (!kit) throw new NotFoundException('Kit not found');
+
+    return {
+      httpStatus: HttpStatus.OK,
+      kit,
     };
   }
 }
