@@ -21,7 +21,7 @@ import {
 import { CreateKitBodyDTO } from './dtos/create-kit.dto';
 import { GetKitsData, GetKitsQuery } from './interfaces/get-kits.interface';
 
-@Controller('kit')
+@Controller('kits')
 export class KitController {
   constructor(private readonly kitService: KitService) {}
 

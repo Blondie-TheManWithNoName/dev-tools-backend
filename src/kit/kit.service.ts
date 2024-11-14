@@ -26,8 +26,8 @@ export class KitService {
     const query = this.kitRepo
       .createQueryBuilder('kit')
       .leftJoinAndSelect('kit.tools', 'tools')
-      .leftJoinAndSelect('tools.toolInfo', 'toolInfo')
-      .where('toolInfo.state = :state', { state: ToolStateEnum.APPROVED });
+      .leftJoinAndSelect('tools.toolInfos', 'toolInfos')
+      .where('tools.state = :state', { state: ToolStateEnum.APPROVED });
 
     //FILTERS
     Object.keys(data).forEach((key) => {
