@@ -7,6 +7,6 @@ export interface CreateKitBody {
   title: string;
   //** Description */
   description?: string;
-  //** Tools */
-  tools: Tool[];
+  // //** Tools */
+  // tools: Tool[];
 }

@@ -20,6 +20,8 @@ import {
 } from './interfaces/create-kit.interface';
 import { CreateKitBodyDTO } from './dtos/create-kit.dto';
 import { GetKitsData, GetKitsQuery } from './interfaces/get-kits.interface';
+import { AddToolBodyDTO } from './dtos/add-tool.dto';
+import { AddToolData } from './interfaces/add-tool.interface';
 
 @Controller('kits')
 export class KitController {
@@ -70,6 +72,22 @@ export class KitController {
   ) {
     const data: CreateKitData = { ...body };
     const response = await this.kitService.createKit(data, req.user);
+    res.status(response.httpStatus).json(response);
+  }
+
+  /**
+   * Add Tool to a kit
+   * [POST] /kits/:id
+   */
+  @Post(':id')
+  @ApiOperation({ summary: 'Add tool to a kit' })
+  async addTool(
+    @Req() req: AuthRequest,
+    @Res() res: Response,
+    @Body() body: AddToolBodyDTO,
+  ) {
+    const data: AddToolData = { ...body };
+    const response = await this.kitService.addTool(data, req.user);
     res.status(response.httpStatus).json(response);
   }
 }

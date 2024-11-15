@@ -12,9 +12,9 @@ export class CreateKitBodyDTO implements CreateKitBody {
   @IsString()
   @IsOptional()
   description?: string;
-  /** Tools */
-  @IsArray()
-  @IsDefined()
-  @Type(() => Tool)
-  tools: Tool[];
+  //   /** Tools */
+  //   @IsArray()
+  //   @IsDefined()
+  //   @Type(() => Tool)
+  //   tools: Tool[];
 }

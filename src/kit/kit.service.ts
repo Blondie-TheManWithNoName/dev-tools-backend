@@ -1,4 +1,9 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from 'src/entities/user';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tool } from 'src/entities/tool';
@@ -9,6 +14,7 @@ import { GetKitData } from './interfaces/get-kit.interface';
 import { CreateKitData } from './interfaces/create-kit.interface';
 import { GetKitsData } from './interfaces/get-kits.interface';
 import { ToolStateEnum } from 'src/enums/tool-state';
+import { AddToolData } from './interfaces/add-tool.interface';
 
 @Injectable()
 export class KitService {
@@ -66,14 +72,35 @@ export class KitService {
 
   async createKit(data: CreateKitData, user: User) {
     // Cheeck Tools existance
-    await Promise.all(
-      data.tools.map(async (tool) => {
-        const foundTool = await this.toolsRepo.findOneBy({ id: tool.id });
-        if (!foundTool) throw new NotFoundException('Tool not found');
-      }),
-    );
+    // await Promise.all(
+    //   data.tools.map(async (tool) => {
+    //     const foundTool = await this.toolsRepo.findOneBy({ id: tool.id });
+    //     if (!foundTool) throw new NotFoundException('Tool not found');
+    //   }),
+    // );
 
     const kit = await this.kitRepo.save({ ...data, user });
+    return {
+      httpStatus: HttpStatus.OK,
+      kit,
+    };
+  }
+
+  async addTool(data: AddToolData, user: User) {
+    const { kitId, toolId } = data;
+
+    const kit = await this.kitRepo.findOneBy({ id: kitId });
+    if (!kit) throw new NotFoundException('Kit not found');
+    // Guard Check Own Kit
+    if (kit.owner !== user)
+      throw new ForbiddenException('User does not own this kit');
+
+    const tool = await this.toolsRepo.findOneBy({ id: toolId });
+    if (!tool) throw new NotFoundException('Tool not found');
+
+    kit.tools.push(tool);
+    await this.kitRepo.save(kit);
+
     return {
       httpStatus: HttpStatus.OK,
       kit,
