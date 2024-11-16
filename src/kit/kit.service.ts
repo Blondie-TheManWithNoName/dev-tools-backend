@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   HttpStatus,
   Injectable,
@@ -8,13 +9,14 @@ import { User } from 'src/entities/user';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tool } from 'src/entities/tool';
 import { ToolInfo } from 'src/entities/tool_info';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Kit } from 'src/entities/kit';
 import { GetKitData } from './interfaces/get-kit.interface';
 import { CreateKitData } from './interfaces/create-kit.interface';
 import { GetKitsData } from './interfaces/get-kits.interface';
 import { ToolStateEnum } from 'src/enums/tool-state';
 import { AddToolData } from './interfaces/add-tool.interface';
+import { RemoveToolData } from './interfaces/remove-tool.interface';
 
 @Injectable()
 export class KitService {
@@ -104,6 +106,41 @@ export class KitService {
     return {
       httpStatus: HttpStatus.OK,
       kit,
+  async removeTool(data: RemoveToolData, user: User) {
+    const { kitIds, toolId } = data;
+
+    const kits = await this.kitRepo.find({
+      where: { id: In(kitIds) },
+      relations: ['tools', 'owner'],
+    });
+
+    if (kits.length !== kitIds.length)
+      throw new NotFoundException('Kit not found');
+    // Guard Check Own Kit
+    kits.forEach((kit) => {
+      if (kit.owner.user_id !== user.user_id)
+        throw new ForbiddenException('User does not own this kit');
+    });
+
+    const unafectedKits: number[] = [];
+    await Promise.all(
+      kits.map(async (kit) => {
+        const toolIndex = kit.tools.findIndex((tool) => tool.id === toolId);
+
+        if (toolIndex === -1) unafectedKits.push(kit.id);
+
+        kit.tools.splice(toolIndex, 1);
+        await this.kitRepo.save(kit);
+      }),
+    );
+
+    if (unafectedKits.length === kits.length)
+      throw new NotFoundException('Tool not found in any specified kits');
+
+    return {
+      httpStatus: HttpStatus.OK,
+      message: 'Removed!',
+      unafectedKits,
     };
   }
 }

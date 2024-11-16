@@ -1,12 +1,15 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
+  Put,
   Query,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ToolFiltersDTO } from 'src/tool/dtos/get-tools';
@@ -22,6 +25,12 @@ import { CreateKitBodyDTO } from './dtos/create-kit.dto';
 import { GetKitsData, GetKitsQuery } from './interfaces/get-kits.interface';
 import { AddToolBodyDTO } from './dtos/add-tool.dto';
 import { AddToolData } from './interfaces/add-tool.interface';
+import {
+  RemoveToolBody,
+  RemoveToolData,
+} from './interfaces/remove-tool.interface';
+import { UserGuard } from 'src/guards/user.guard';
+import { RemoveToolBodyDTO } from './dtos/remove-tool.dto';
 
 @Controller('kits')
 export class KitController {
@@ -88,6 +97,23 @@ export class KitController {
   ) {
     const data: AddToolData = { ...body };
     const response = await this.kitService.addTool(data, req.user);
+    res.status(response.httpStatus).json(response);
+  }
+
+  /**
+   * Remove Tool from a kit
+   * [PUT] /kits
+   */
+  @Put('remove')
+  @UseGuards(UserGuard)
+  @ApiOperation({ summary: 'Add tool to a kit' })
+  async removeTool(
+    @Req() req: AuthRequest,
+    @Res() res: Response,
+    @Body() body: RemoveToolBodyDTO,
+  ) {
+    const data: RemoveToolData = { ...body };
+    const response = await this.kitService.removeTool(data, req.user);
     res.status(response.httpStatus).json(response);
   }
 }
