@@ -17,6 +17,7 @@ import { ToolInfo } from 'src/entities/tool_info';
 import { UserTypeEnum } from 'src/enums/user-type';
 import { Tag } from 'src/entities/tag';
 import { ToolFilters } from './dtos/get-tools';
+import { ToolDTO } from './dtos/tool.dto';
 
 @Injectable()
 export class ToolService {
@@ -30,62 +31,44 @@ export class ToolService {
     private readonly tagRepo: Repository<Tag>,
   ) {}
   async getAllTools(data: ToolFilters) {
+    const { tags, page, take } = data;
     const states = [
       Object.keys(ToolStateEnum).indexOf(ToolStateEnum.APPROVED) + 1,
       Object.keys(ToolStateEnum).indexOf(ToolStateEnum.UPDATED) + 1,
     ];
 
-    const queryTools = await this.toolsInfoRepo
-      .createQueryBuilder('toolInfo')
-      .leftJoinAndSelect('toolInfo.tool', 'tool')
-      .leftJoinAndSelect('toolInfo.tags', 'tags')
+    const query = this.toolsRepo
+      .createQueryBuilder('tool')
+      .leftJoinAndSelect('tool.toolInfos', 'toolInfos')
+      .leftJoinAndSelect('toolInfos.tags', 'tags')
       .where('tool.state IN(:states)', { states })
-      .andWhere('toolInfo.valid = true');
+      .andWhere('toolInfos.valid = true');
 
-    // const [tools, count] = await this.toolsInfoRepo.findAndCount({
-    //   select: {
-    //     tool_id: true,
-    //     title: true,
-    //     url: true,
-    //     description: true,
-    //     tags: true,
-    //   },
-    //   where: {
-    //     valid: true,
-    //     tool: {
-    //       state: {
-    //         state_id: In([ToolStateEnum.APPROVED, ToolStateEnum.UPDATED]),
-    //       },
-    //     },
-    //   },
-    //   relations: ['tool', 'tags'],
-    // });
-
-    // if (data) {
-    //   switch (key) {
-    //     case 'tags':
-    //       queryTools.andWhere('tags HAVING(:tags)', { tags: data.tags });
-    //       break;
-
-    //     default:
-    //       break;
-    //   }
-    // }
-
-    const [tools, count] = await queryTools.getManyAndCount();
-
-    const toolsClean = tools.map((tool) => {
-      return {
-        ...tool,
-        tool: undefined,
-        numFavorites: tool.tool.numFavorites,
-      };
+    //FILTERS
+    Object.keys(data).forEach((key) => {
+      switch (key) {
+        case 'tags':
+          query.andWhere('tags.name IN(:...tags)', { tags });
+          break;
+        // Pagination
+        case 'page':
+          const skip = (page - 1) * (take ? take : 0);
+          if (skip) query.skip(skip);
+          break;
+        case 'take':
+          query.take(Number(take));
+          break;
+      }
     });
+
+    const [tools, count] = await query.getManyAndCount();
+
+    const procTools = tools.map((tool) => new ToolDTO(tool));
 
     return {
       httpStatus: HttpStatus.OK,
       count: count,
-      tools: toolsClean,
+      tools: procTools,
     };
   }
 
@@ -175,8 +158,6 @@ export class ToolService {
         processed_time: new Date(),
       };
       const processed = await this.processToolRepo.save(processData);
-      console.log('data', data);
-      console.log('hola', await this.toolsInfoRepo.find());
       const newTool = await this.toolsInfoRepo.save(data);
 
       return {
@@ -190,7 +171,7 @@ export class ToolService {
   async setStateTool(data: SetStateTool, user: User) {
     const oldTool = await this.toolsRepo.findOne({
       where: { id: data.id },
-      relations: ['posted_by', 'favorites'],
+      relations: ['posted_by'],
     });
     if (oldTool) {
       // Change tool status

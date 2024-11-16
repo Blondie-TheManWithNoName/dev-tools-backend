@@ -23,7 +23,7 @@ import { UserGuard } from 'src/guards/user.guard';
 import { AdminGuard } from 'src/guards/ADMIN.guard';
 import { ToolStateEnum } from 'src/enums/tool-state';
 import { OptionalUserGuard } from 'src/guards/optUser.guard';
-import { ToolFiltersDTO } from './dtos/get-tools';
+import { GetToolsQueryDTO } from './dtos/get-tools';
 
 @ApiTags('Tools')
 @Controller('tools')
@@ -39,7 +39,7 @@ export class ToolController {
   async getAllTools(
     @Req() _req: Request,
     @Res() res: Response,
-    @Query() query: ToolFiltersDTO,
+    @Query() query: GetToolsQueryDTO,
   ) {
     const response = await this.toolService.getAllTools(query);
     res.status(response.httpStatus).json(response);
