@@ -7,9 +7,10 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
-import { Favorite } from './favorites';
-import { IsDefined } from 'class-validator';
+// import { Favorite } from './favorites';
+import { IsDefined, IsOptional } from 'class-validator';
 import { UserTypeEnum } from 'src/enums/user-type';
+import { Kit } from './kit';
 
 @Entity()
 export class User {
@@ -33,9 +34,14 @@ export class User {
   @IsDefined()
   password: string;
 
+  /** Password */
+  @Column()
+  @IsOptional()
+  avatar: string;
+
   /** Favorites */
-  @OneToMany(() => Favorite, (favorite) => favorite.user)
-  favorites: Favorite[];
+  @OneToMany(() => Kit, (kit) => kit.owner)
+  kits: Kit[];
 
   /** Type */
   @Column('tinyint', {
