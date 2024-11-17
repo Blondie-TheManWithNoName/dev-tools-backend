@@ -4,7 +4,7 @@ export interface AddToolData extends AddToolBody {}
 
 export interface AddToolBody {
   //** Kit ID */
-  kitId: number;
+  kitIds: number[];
   //** Tools */
   toolId: number;
 }

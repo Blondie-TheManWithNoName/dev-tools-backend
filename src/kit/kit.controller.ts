@@ -86,9 +86,10 @@ export class KitController {
 
   /**
    * Add Tool to a kit
-   * [POST] /kits/:id
+   * [PUT] /kits
    */
-  @Post(':id')
+  @Put('add')
+  @UseGuards(UserGuard)
   @ApiOperation({ summary: 'Add tool to a kit' })
   async addTool(
     @Req() req: AuthRequest,

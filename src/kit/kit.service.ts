@@ -89,23 +89,48 @@ export class KitService {
   }
 
   async addTool(data: AddToolData, user: User) {
-    const { kitId, toolId } = data;
+    const { kitIds, toolId } = data;
 
-    const kit = await this.kitRepo.findOneBy({ id: kitId });
-    if (!kit) throw new NotFoundException('Kit not found');
+    const kits = await this.kitRepo.find({
+      where: { id: In(kitIds) },
+      relations: ['tools', 'owner'],
+    });
+    if (kits.length !== kitIds.length)
+      throw new NotFoundException('Kit not found');
     // Guard Check Own Kit
-    if (kit.owner !== user)
-      throw new ForbiddenException('User does not own this kit');
+    kits.forEach((kit) => {
+      if (kit.owner.user_id !== user.user_id)
+        throw new ForbiddenException('User does not own this kit');
+    });
 
     const tool = await this.toolsRepo.findOneBy({ id: toolId });
     if (!tool) throw new NotFoundException('Tool not found');
 
-    kit.tools.push(tool);
-    await this.kitRepo.save(kit);
+    if (
+      tool.state === ToolStateEnum.PENDING ||
+      tool.state === ToolStateEnum.REJECTED
+    )
+      throw new BadRequestException('Tool state not valid');
+
+    // const isDuplicate = kit.tools.some(
+    //   (existingTool) => existingTool.id === tool.id,
+    // );
+    // if (isDuplicate) throw new BadRequestException('Tool already on Kit');
+
+    await Promise.all(
+      kits.map(async (kit) => {
+        kit.tools.push(tool);
+        await this.kitRepo.save(kit);
+      }),
+    );
 
     return {
       httpStatus: HttpStatus.OK,
-      kit,
+      message: 'Added!',
+      //   kits,
+    };
+  }
+
   async removeTool(data: RemoveToolData, user: User) {
     const { kitIds, toolId } = data;
 
