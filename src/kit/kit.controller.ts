@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
-import { ToolFiltersDTO } from 'src/tool/dtos/get-tools';
+import { GetToolsQueryDTO } from 'src/tool/dtos/get-tools';
 import { Response } from 'express';
 import { KitService } from './kit.service';
 import { AuthRequest } from 'src/app.interfaces';
@@ -56,7 +56,7 @@ export class KitController {
    * Get a kit
    * [GET] /kits/:id
    */
-  @Get(':id')
+  @Get(':kitId')
   @ApiOperation({ summary: 'Get a kit' })
   async getKit(
     @Req() req: AuthRequest,
@@ -70,9 +70,10 @@ export class KitController {
 
   /**
    * Create a kit
-   * [POST] /kits/:id
+   * [POST] /kits
    */
-  @Post(':id')
+  @Post()
+  @UseGuards(UserGuard)
   @ApiOperation({ summary: 'Create a kit' })
   async cerateKit(
     @Req() req: AuthRequest,

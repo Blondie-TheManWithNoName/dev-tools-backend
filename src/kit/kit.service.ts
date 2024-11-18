@@ -17,6 +17,8 @@ import { GetKitsData } from './interfaces/get-kits.interface';
 import { ToolStateEnum } from 'src/enums/tool-state';
 import { AddToolData } from './interfaces/add-tool.interface';
 import { RemoveToolData } from './interfaces/remove-tool.interface';
+import { ToolDTO } from 'src/tool/dtos/tool.dto';
+import { KitPreviewDTO } from './dtos/kit-preview.dto';
 
 @Injectable()
 export class KitService {
@@ -34,8 +36,8 @@ export class KitService {
     const query = this.kitRepo
       .createQueryBuilder('kit')
       .leftJoinAndSelect('kit.tools', 'tools')
-      .leftJoinAndSelect('tools.toolInfos', 'toolInfos')
-      .where('tools.state = :state', { state: ToolStateEnum.APPROVED });
+      .leftJoinAndSelect('kit.owner', 'owner')
+      .leftJoinAndSelect('tools.toolInfos', 'toolInfos');
 
     //FILTERS
     Object.keys(data).forEach((key) => {
@@ -53,35 +55,38 @@ export class KitService {
 
     const [kits, count] = await query.getManyAndCount();
 
+    const procKits = kits.map((kit) => new KitPreviewDTO(kit));
+
     return {
       httpStatus: HttpStatus.OK,
       count,
-      kits,
+      kits: procKits,
     };
   }
 
   async getKit(data: GetKitData, user: User) {
     const { kitId } = data;
+    const kit = await this.kitRepo
+      .createQueryBuilder('kit')
+      .leftJoinAndSelect('kit.tools', 'tools')
+      .leftJoinAndSelect('tools.toolInfos', 'toolInfos')
+      .where('kit.id = :kitId', { kitId })
+      .andWhere('toolInfos.valid = true')
+      .getOne();
 
-    const kit = await this.kitRepo.findOneBy({ id: kitId });
+    console.log('kit', kit);
     if (!kit) throw new NotFoundException('Kit not found');
+
+    const procKit = kit.tools.map((tool) => new ToolDTO(tool));
 
     return {
       httpStatus: HttpStatus.OK,
-      kit,
+      kit: procKit,
     };
   }
 
   async createKit(data: CreateKitData, user: User) {
-    // Cheeck Tools existance
-    // await Promise.all(
-    //   data.tools.map(async (tool) => {
-    //     const foundTool = await this.toolsRepo.findOneBy({ id: tool.id });
-    //     if (!foundTool) throw new NotFoundException('Tool not found');
-    //   }),
-    // );
-
-    const kit = await this.kitRepo.save({ ...data, user });
+    const kit = await this.kitRepo.save({ ...data, owner: user });
     return {
       httpStatus: HttpStatus.OK,
       kit,
