@@ -4,11 +4,14 @@ import {
   Column,
   OneToMany,
   ManyToOne,
+  ManyToMany,
 } from 'typeorm';
-import { Favorite } from './favorites';
+// import { Favorite } from './favorites';
 import { IsDefined } from 'class-validator';
 import { User } from './user';
 import { ToolStateEnum } from 'src/enums/tool-state';
+import { Kit } from './kit';
+import { ToolInfo } from './tool_info';
 
 @Entity()
 export class Tool {
@@ -36,12 +39,14 @@ export class Tool {
   @IsDefined()
   posted_by: User;
 
-  /** Favorites */
-  @OneToMany(() => Favorite, (favorite) => favorite.tool)
-  @IsDefined()
-  favorites: Favorite[];
+  /** Kits */
+  @ManyToMany(() => Kit, (kit) => kit.tools)
+  kits: Kit[];
 
   @Column('int', { default: 0 })
   @IsDefined()
   numFavorites: number;
+
+  @OneToMany(() => ToolInfo, (toolInfo) => toolInfo.tool)
+  toolInfos: ToolInfo[];
 }

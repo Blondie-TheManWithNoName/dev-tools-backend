@@ -7,11 +7,13 @@ import {
   JoinTable,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { Tag } from './tag';
 import { IsDefined } from 'class-validator';
 import { Tool } from './tool';
 
+@Unique(['url', 'valid'])
 @Entity()
 export class ToolInfo {
   @PrimaryColumn()
