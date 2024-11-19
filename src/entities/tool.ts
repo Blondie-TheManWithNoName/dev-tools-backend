@@ -6,7 +6,6 @@ import {
   ManyToOne,
   ManyToMany,
 } from 'typeorm';
-// import { Favorite } from './favorites';
 import { IsDefined } from 'class-validator';
 import { User } from './user';
 import { ToolStateEnum } from 'src/enums/tool-state';

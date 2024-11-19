@@ -11,12 +11,11 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { UserService } from './user.service';
 import { CreateUserDTO } from './dtos/create-user';
 import { UpdateUserDTO } from './dtos/update-user';
-import { AddFavoriteDTO } from './dtos/add-favorite';
 import { UserGuard } from 'src/guards/user.guard';
 import { AuthRequest } from 'src/app.interfaces';
 import { AdminGuard } from 'src/guards/ADMIN.guard';
@@ -103,75 +102,22 @@ export class UserController {
   }
 
   /**
-   * Gets user favorites
-   * [GET] /users/:id/favorites
+   * Gets user kits
+   * [GET] /users/:id/kits
    */
-  @Get(':id/favorites')
-  @ApiOperation({ summary: 'Get users favorite' })
-  async getFavorites(
-    @Req() _req: Request,
+  @Get(':id/kits')
+  @ApiOperation({ summary: 'Get users kits' })
+  async getKits(
+    @Req() req: Request,
     @Res() res: Response,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) userId: number,
   ) {
-    const response = await this.userService.getFavorites(id);
+    const response = await this.userService.getKits(userId);
     res.status(response.httpStatus).json(response);
   }
 
   /**
-   * Gets user favorites
-   * [GET] /users/:id/favorites
-   */
-  @Get(':id/tool/:toolId')
-  @ApiOperation({ summary: 'Get users favorite' })
-  async getFavorite(
-    @Req() _req: Request,
-    @Res() res: Response,
-    @Param('id', ParseIntPipe) id: number,
-    @Param('toolId', ParseIntPipe) toolId: number,
-  ) {
-    const response = await this.userService.getFavorite(id, toolId);
-    res.status(response.httpStatus).json(response);
-  }
-
-  /**
-   * Adds a favorite
-   * [POST] /users/:id/favorites
-   */
-  @Post(':id/favorites/add')
-  @ApiOperation({ summary: 'Adds a favorite to user' })
-  @UseGuards(UserGuard)
-  async addFavorite(
-    @Req() req: AuthRequest,
-    @Res() res: Response,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: AddFavoriteDTO,
-  ) {
-    const data = { user_id: id, ...body };
-    const response = await this.userService.addFavorite(data, req.user);
-    res.status(response.httpStatus).json(response);
-  }
-
-  /**
-   * Adds a favorite
-   * [POST] /users/:id/favorites
-   */
-  @Post(':id/favorites/remove')
-  @ApiOperation({ summary: 'Removes a favorite to user' })
-  @UseGuards(UserGuard)
-  async removeFavorite(
-    @Req() req: AuthRequest,
-    @Res() res: Response,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: AddFavoriteDTO,
-  ) {
-    console.log('HOLA');
-    const data = { user_id: id, ...body };
-    const response = await this.userService.removeFavorite(data, req.user);
-    res.status(response.httpStatus).json(response);
-  }
-
-  /**
-   * Adds a favorite
+   * Follow
    * [POST] /users/follow/:id
    */
   @Post('follow/:id')
@@ -187,7 +133,7 @@ export class UserController {
   }
 
   /**
-   * Adds a favorite
+   * Unfollow
    * [POST] /users/unfollow/:id
    */
   @Post('unfollow/:id')

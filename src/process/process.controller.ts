@@ -26,7 +26,7 @@ export class ProcessController {
   @Get()
   @ApiOperation({ summary: 'Gets tool processes' })
   @UseGuards(UserGuard)
-  async deleteFavorite(@Req() req: AuthRequest, @Res() res: Response) {
+  async getProcesses(@Req() req: AuthRequest, @Res() res: Response) {
     const response = await this.favsService.getProcesses();
     res.status(response.httpStatus).json(response);
   }

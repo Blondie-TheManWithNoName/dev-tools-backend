@@ -1,11 +1,5 @@
-import {
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Favorite } from 'src/entities/favorites';
 import { Repository } from 'typeorm';
 import { ProcessTool } from 'src/entities/process_tool';
 

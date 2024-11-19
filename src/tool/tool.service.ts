@@ -139,7 +139,7 @@ export class ToolService {
   async updateTool(data: UpdateToolInfo, user: User) {
     const tool = await this.toolsRepo.findOne({
       where: { id: data.id },
-      relations: ['posted_by', 'favorites'],
+      relations: ['posted_by'],
     });
     if (tool) {
       // Change tool status

@@ -7,7 +7,6 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
-// import { Favorite } from './favorites';
 import { IsDefined, IsOptional } from 'class-validator';
 import { UserTypeEnum } from 'src/enums/user-type';
 import { Kit } from './kit';
@@ -39,7 +38,7 @@ export class User {
   @IsOptional()
   avatar: string;
 
-  /** Favorites */
+  /** Kits  */
   @OneToMany(() => Kit, (kit) => kit.owner)
   kits: Kit[];
 

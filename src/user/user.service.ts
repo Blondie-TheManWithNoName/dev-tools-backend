@@ -8,13 +8,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user';
 import { Repository } from 'typeorm';
-import { CreateUserDTO } from './dtos/create-user';
 import { CreateUser } from './interfaces/create-user';
 import { UpdateUser } from './interfaces/update-user';
 import { Tool } from 'src/entities/tool';
-import { Favorite } from 'src/entities/favorites';
 import { getSaltedPassword } from 'src/app.utils';
 import { ToolInfo } from 'src/entities/tool_info';
+import { Kit } from 'src/entities/kit';
 
 @Injectable()
 export class UserService {
@@ -23,8 +22,8 @@ export class UserService {
     @InjectRepository(ToolInfo)
     private readonly toolInfoRepo: Repository<ToolInfo>,
     @InjectRepository(Tool) private readonly toolRepo: Repository<Tool>,
-    @InjectRepository(Favorite)
-    private readonly favoriteRepo: Repository<Favorite>,
+    @InjectRepository(Kit)
+    private readonly kitRepo: Repository<Kit>,
   ) {}
   async getAllUsers() {
     const [users, count] = await this.userRepo.findAndCount();
@@ -78,7 +77,7 @@ export class UserService {
       } else throw new NotFoundException();
     } else
       throw new UnauthorizedException(
-        'User not authorized to delete this favorite',
+        'User not authorized no update another user',
       );
   }
 
@@ -93,111 +92,23 @@ export class UserService {
     } else throw new NotFoundException('User nor found');
   }
 
-  //#region FAVORITES
+  //#region KITS
 
-  async getFavorites(id: number) {
+  async getKits(id: number) {
     const user = await this.userRepo.findOne({ where: { user_id: id } });
 
     if (user) {
-      const [favorites, count] = await this.favoriteRepo.findAndCount({
-        where: { user: { user_id: id } },
-        relations: ['tool'],
+      const [kits, count] = await this.kitRepo.findAndCount({
+        where: { owner: { user_id: id } },
+        relations: ['tools'],
       });
 
       return {
         httpStatus: HttpStatus.OK,
-        favorites: favorites,
-        count: count,
+        count,
+        kits,
       };
     } else throw new NotFoundException('User not found');
-  }
-
-  async getFavorite(id: number, toolId: number) {
-    const user = await this.userRepo.findOne({ where: { user_id: id } });
-    const tool = await this.toolRepo.findOne({ where: { id: toolId } });
-
-    if (!user) throw new NotFoundException('User not found');
-    if (!tool) throw new NotFoundException('Tool not found');
-
-    const favorite = await this.favoriteRepo.findOne({
-      where: { user: { user_id: id }, tool: { id: toolId } },
-    });
-
-    if (!favorite) throw new NotFoundException('Favorite not found');
-
-    return {
-      httpStatus: HttpStatus.OK,
-      favorite: favorite,
-    };
-  }
-
-  async addFavorite(data, user: User) {
-    if (user.user_id !== data.user_id) {
-      throw new UnauthorizedException(
-        'User not authorized to add this favorite',
-      );
-    }
-
-    const toolInfo = await this.toolInfoRepo.findOne({
-      where: { id: data.toolId },
-      relations: ['tool'],
-    });
-    if (!toolInfo) {
-      throw new NotFoundException('Tool not found');
-    }
-
-    // Increment numFavorites with an atomic operation if possible, otherwise save the incremented count
-    toolInfo.tool.numFavorites += 1;
-    await this.toolRepo.save(toolInfo.tool);
-
-    const favorite = await this.favoriteRepo.save({
-      user,
-      tool: toolInfo,
-    });
-
-    return {
-      httpStatus: HttpStatus.OK,
-      message: 'Added!',
-      favorite,
-      updatedTool: toolInfo.tool, // Optional: include updated tool information
-    };
-  }
-
-  async removeFavorite(data, user: User) {
-    if (user.user_id !== data.user_id) {
-      throw new UnauthorizedException(
-        'User not authorized to remove this favorite',
-      );
-    }
-
-    const toolInfo = await this.toolInfoRepo.findOne({
-      where: { id: data.toolId },
-      relations: ['tool'],
-    });
-    if (!toolInfo) {
-      throw new NotFoundException('Tool not found');
-    }
-
-    const favorite = await this.favoriteRepo.findOne({
-      where: { user: user, tool: toolInfo.tool },
-    });
-    if (!favorite) {
-      throw new NotFoundException('Favorite not found');
-    }
-
-    // Decrement numFavorites if greater than zero to prevent negative values
-    if (toolInfo.tool.numFavorites > 0) {
-      toolInfo.tool.numFavorites -= 1;
-      await this.toolRepo.save(toolInfo.tool);
-    }
-
-    await this.favoriteRepo.delete(favorite.fav_id);
-
-    return {
-      httpStatus: HttpStatus.OK,
-      message: 'Removed!',
-      updatedTool: toolInfo.tool, // Optional: include updated tool information
-    };
   }
 
   async followUser(user: User, targetUserId: number) {

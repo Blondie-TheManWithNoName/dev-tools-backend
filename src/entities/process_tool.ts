@@ -2,15 +2,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToMany,
-  ManyToMany,
-  JoinTable,
   ManyToOne,
   JoinColumn,
-  PrimaryColumn,
 } from 'typeorm';
-import { Favorite } from './favorites';
-import { Tag } from './tag';
 import { IsDefined, IsOptional } from 'class-validator';
 import { User } from './user';
 import { Tool } from './tool';
