@@ -5,4 +5,6 @@ export interface CreateTool {
   url: string;
   /** Description */
   description: string;
+  /** Tags */
+  tags: string[];
 }

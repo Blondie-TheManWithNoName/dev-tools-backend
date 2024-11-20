@@ -104,23 +104,46 @@ export class ToolService {
 
   async createTool(data: CreateTool, user) {
     try {
+      const { tags, title, url, description } = data;
       const tool: Tool = await this.toolsRepo.save({
         posted_by: user,
         state:
-          user.type.type_id === UserTypeEnum.ADMIN
+          user.type === UserTypeEnum.ADMIN
             ? ToolStateEnum.APPROVED
             : ToolStateEnum.PENDING,
       });
 
+      // Fetch the Tag entity
+      const tagsArray: Tag[] = [];
+      await Promise.all(
+        tags.map(async (tagName) => {
+          const tag = await this.tagRepo.findOne({ where: { name: tagName } });
+          if (!tag) throw new NotFoundException(`Tag not found`);
+          tagsArray.push(tag);
+        }),
+      );
+
+      // // Add the Tag to ToolInfo's tags array if it's not already added
+      // if (!toolInfo.tags.find((existingTag) => existingTag.id === tag.id)) {
+      //   this.toolsInfoRepo.save(toolInfo);
+      // } else throw new ConflictException(`Tag already added`);
+
       const toolInfo = await this.toolsInfoRepo.save({
         id: tool.id,
         valid: true,
-        ...data,
+        tags: tagsArray,
+        description,
+        title,
+        url,
       });
+
       await this.toolsInfoRepo.save({
         id: tool.id,
         valid: false,
-        ...data,
+        tags: tagsArray,
+        description,
+        title,
+        url,
       });
       return {
         httpStatus: HttpStatus.OK,
@@ -129,7 +152,6 @@ export class ToolService {
         toolInfo: toolInfo,
       };
     } catch (error) {
-      console.log('error', error);
       if (error.code === 'ER_DUP_ENTRY')
         throw new ConflictException('Duplicated tool');
       else throw error;
