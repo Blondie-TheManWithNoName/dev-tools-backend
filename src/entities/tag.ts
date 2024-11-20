@@ -13,7 +13,7 @@ import { ToolInfo } from './tool_info';
 export class Tag {
   @PrimaryGeneratedColumn()
   @IsDefined()
-  tag_id: number;
+  id: number;
 
   @Column({ unique: true })
   @IsDefined()

@@ -253,13 +253,11 @@ export class ToolService {
     if (!toolInfo) throw new NotFoundException(`Tool not found`);
 
     // Fetch the Tag entity
-    const tag = await this.tagRepo.findOne({ where: { tag_id: data.tagId } });
+    const tag = await this.tagRepo.findOne({ where: { id: data.tagId } });
     if (!tag) throw new NotFoundException(`Tag not found`);
 
     // Add the Tag to ToolInfo's tags array if it's not already added
-    if (
-      !toolInfo.tags.find((existingTag) => existingTag.tag_id === tag.tag_id)
-    ) {
+    if (!toolInfo.tags.find((existingTag) => existingTag.id === tag.id)) {
       toolInfo.tags.push(tag);
       this.toolsInfoRepo.save(toolInfo);
     } else throw new ConflictException(`Tag already added`);
@@ -294,10 +292,10 @@ export class ToolService {
     if (!toolInfo) throw new NotFoundException(`Tool not found`);
 
     // Fetch the Tag entity
-    const tag = await this.tagRepo.findOne({ where: { tag_id: data.tagId } });
+    const tag = await this.tagRepo.findOne({ where: { id: data.tagId } });
     if (!tag) throw new NotFoundException(`Tag not found`);
 
-    const index = toolInfo.tags.findIndex((t) => t.tag_id === tag.tag_id);
+    const index = toolInfo.tags.findIndex((t) => t.id === tag.id);
     toolInfo.tags.splice(index, 1);
 
     if (index === -1) this.toolsInfoRepo.save(toolInfo);

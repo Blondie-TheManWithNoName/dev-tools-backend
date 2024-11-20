@@ -24,7 +24,7 @@ export class TagService {
     };
   }
   async getTag(id: number) {
-    const tag = await this.tagsRepo.findOneBy({ tag_id: id });
+    const tag = await this.tagsRepo.findOneBy({ id: id });
     if (tag) {
       return {
         httpStatus: HttpStatus.OK,
@@ -61,7 +61,7 @@ export class TagService {
     //   });
     //   if (tool) {
     //     if (
-    //       !tool.tags.some((existingTag) => existingTag.tag_id === data.tagId)
+    //       !tool.tags.some((existingTag) => existingTag.id === data.tagId)
     //     ) {
     //       tool.tags.push(tag);
     //       await this.toolsRepo.save(tool);
@@ -76,7 +76,7 @@ export class TagService {
   }
 
   async deleteTag(id: number) {
-    const tag = await this.tagsRepo.delete({ tag_id: id });
+    const tag = await this.tagsRepo.delete({ id: id });
 
     if (tag) {
       return {

@@ -43,7 +43,7 @@ export class ToolInfo {
       { name: 'id', referencedColumnName: 'id' },
       { name: 'valid', referencedColumnName: 'valid' },
     ],
-    inverseJoinColumns: [{ name: 'tag_id', referencedColumnName: 'tag_id' }],
+    inverseJoinColumns: [{ name: 'tag_id', referencedColumnName: 'id' }],
   })
   tags: Tag[];
 
