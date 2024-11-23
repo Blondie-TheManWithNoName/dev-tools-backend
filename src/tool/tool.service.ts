@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpStatus,
   Injectable,
@@ -63,7 +64,17 @@ export class ToolService {
 
     const [tools, count] = await query.getManyAndCount();
 
-    const procTools = tools.map((tool) => new ToolDTO(tool));
+    const procTools = await Promise.all(
+      tools.map(async (tool) => {
+        const faviconResponse = await fetch(
+          `https://www.google.com/s2/favicons?sz=128&domain=${tool.toolInfos[0].url}`,
+        );
+        const favicon = faviconResponse.ok
+          ? faviconResponse.url
+          : '/favicon.ico';
+        return new ToolDTO(tool, favicon);
+      }),
+    );
 
     return {
       httpStatus: HttpStatus.OK,
@@ -105,6 +116,11 @@ export class ToolService {
   async createTool(data: CreateTool, user) {
     try {
       const { tags, title, url, description } = data;
+
+      console.log('url', url);
+      const exists = await this.checkUrl(url);
+      if (!exists) throw new BadRequestException("URL doesn't exist");
+
       const tool: Tool = await this.toolsRepo.save({
         posted_by: user,
         state:
@@ -154,6 +170,7 @@ export class ToolService {
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY')
         throw new ConflictException('Duplicated tool');
+      // if (error.code === '')
       else throw error;
     }
   }
@@ -328,4 +345,18 @@ export class ToolService {
       tag: tag,
     };
   }
+
+  //endregion TAG
+  //#region PRIVATE
+
+  // Check if the URL exists
+  async checkUrl(url: string): Promise<boolean> {
+    try {
+      await fetch(url);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  //endregion PRIVATE
 }
