@@ -8,7 +8,7 @@ import {
   IsUrl,
 } from 'class-validator';
 import { CreateTool } from '../interfaces/create-tool';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateToolDTO implements CreateTool {
   /** Title */
@@ -19,6 +19,13 @@ export class CreateToolDTO implements CreateTool {
   /** URL */
   @ApiProperty({ required: true, type: String })
   @IsDefined()
+  @Transform(({ value }) => {
+    if (!value.startsWith('https://')) {
+      value = value.split('http://')[1] ?? value;
+      value = 'https://' + value;
+    }
+    return value;
+  })
   @IsUrl()
   url: string;
   /** Description */
@@ -32,5 +39,5 @@ export class CreateToolDTO implements CreateTool {
   @IsOptional()
   @IsArray()
   @Type(() => String)
-  tags: string[];
+  tags: string[] = [];
 }
