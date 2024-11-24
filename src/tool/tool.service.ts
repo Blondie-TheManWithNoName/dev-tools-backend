@@ -64,17 +64,7 @@ export class ToolService {
 
     const [tools, count] = await query.getManyAndCount();
 
-    const procTools = await Promise.all(
-      tools.map(async (tool) => {
-        const faviconResponse = await fetch(
-          `https://www.google.com/s2/favicons?sz=128&domain=${tool.toolInfos[0].url}`,
-        );
-        const favicon = faviconResponse.ok
-          ? faviconResponse.url
-          : '/favicon.ico';
-        return new ToolDTO(tool, favicon);
-      }),
-    );
+    const procTools = tools.map((tool) => new ToolDTO(tool));
 
     return {
       httpStatus: HttpStatus.OK,
@@ -144,6 +134,13 @@ export class ToolService {
       //   this.toolsInfoRepo.save(toolInfo);
       // } else throw new ConflictException(`Tag already added`);
 
+      const faviconResponse = await fetch(
+        `https://www.google.com/s2/favicons?sz=128&domain=${url}`,
+      );
+      const faviconPath = faviconResponse.ok
+        ? faviconResponse.url
+        : '/favicon.ico';
+
       const toolInfo = await this.toolsInfoRepo.save({
         id: tool.id,
         valid: true,
@@ -151,6 +148,7 @@ export class ToolService {
         description,
         title,
         url,
+        faviconPath,
       });
 
       await this.toolsInfoRepo.save({

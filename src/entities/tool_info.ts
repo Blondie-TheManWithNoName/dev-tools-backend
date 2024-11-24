@@ -33,7 +33,7 @@ export class ToolInfo {
   @IsDefined()
   url: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   description: string;
 
   @ManyToMany(() => Tag, (tag) => tag.tools)
@@ -46,6 +46,9 @@ export class ToolInfo {
     inverseJoinColumns: [{ name: 'tag_id', referencedColumnName: 'id' }],
   })
   tags: Tag[];
+
+  @Column({ nullable: true })
+  faviconPath: string;
 
   @PrimaryColumn('boolean')
   valid: boolean;
