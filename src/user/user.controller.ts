@@ -150,4 +150,20 @@ export class UserController {
     const response = await this.userService.followUser(req.user, id);
     res.status(response.httpStatus).json(response);
   }
+
+  /**
+   * Adds a favorite
+   * [POST] /users/:id/favorites
+   */
+  @Post('unfollow/:id')
+  @ApiOperation({ summary: 'Unfollow a user' })
+  @UseGuards(UserGuard)
+  async unfollowUser(
+    @Req() req: AuthRequest,
+    @Res() res: Response,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const response = await this.userService.unfollowUser(req.user, id);
+    res.status(response.httpStatus).json(response);
+  }
 }

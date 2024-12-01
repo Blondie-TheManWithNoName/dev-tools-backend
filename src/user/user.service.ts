@@ -151,4 +151,28 @@ export class UserService {
       followedUser: targetUser,
     };
   }
+
+  async unfollowUser(user: User, targetUserId: number) {
+    const targetUser = await this.userRepo.findOneBy({ user_id: targetUserId });
+    if (!targetUser) throw new NotFoundException('User not found');
+
+    user.following = user.following.filter(
+      (u) => u.user_id !== targetUser.user_id,
+    );
+    targetUser.followers = targetUser.followers.filter(
+      (u) => u.user_id !== user.user_id,
+    );
+
+    // Update counts
+    user.followingCount--;
+    targetUser.followerCount--;
+
+    await this.userRepo.save([user, targetUser]);
+
+    return {
+      httpStatus: HttpStatus.OK,
+      unfollowing: user.followingCount,
+      unfollowedUser: targetUser,
+    };
+  }
 }
