@@ -137,7 +137,7 @@ export class UserController {
 
   /**
    * Adds a favorite
-   * [POST] /users/:id/favorites
+   * [POST] /users/follow/:id
    */
   @Post('follow/:id')
   @ApiOperation({ summary: 'Follow a user' })
@@ -153,7 +153,7 @@ export class UserController {
 
   /**
    * Adds a favorite
-   * [POST] /users/:id/favorites
+   * [POST] /users/unfollow/:id
    */
   @Post('unfollow/:id')
   @ApiOperation({ summary: 'Unfollow a user' })

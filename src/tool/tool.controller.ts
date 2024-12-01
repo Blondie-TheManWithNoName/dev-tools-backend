@@ -80,7 +80,7 @@ export class ToolController {
   }
   /**
    * Updates a tool
-   * [PUT] /tools
+   * [PUT] /tools/:id
    */
   @Put(':id')
   @ApiOperation({ summary: 'Updates a tool' })
