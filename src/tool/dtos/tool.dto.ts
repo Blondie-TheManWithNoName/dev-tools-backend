@@ -11,12 +11,16 @@ export class ToolDTO {
   favicon: string;
 
   constructor(tool: Tool) {
+    const validToolInfo = tool.toolInfos[0].valid
+      ? tool.toolInfos[0]
+      : tool.toolInfos[1];
+
     this.id = tool.id;
-    this.title = tool.toolInfos[0].title;
-    this.url = tool.toolInfos[0].url;
-    this.description = tool.toolInfos[0].description;
-    this.tags = tool.toolInfos[0].tags;
+    this.title = validToolInfo.title;
+    this.url = validToolInfo.url;
+    this.description = validToolInfo.description;
+    this.tags = validToolInfo.tags;
     this.numFavorites = tool.numFavorites;
-    this.favicon = tool.toolInfos[0].faviconPath;
+    this.favicon = validToolInfo.faviconPath;
   }
 }

@@ -1,4 +1,9 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tag } from 'src/entities/tag';
 import { Tool } from 'src/entities/tool';
@@ -33,12 +38,18 @@ export class TagService {
     } else throw new NotFoundException();
   }
   async createTag(data: CreateTag) {
-    const tag = await this.tagsRepo.save(data);
-    return {
-      httpStatus: HttpStatus.OK,
-      message: 'Success!',
-      tag: tag,
-    };
+    try {
+      const tag = await this.tagsRepo.save(data);
+      return {
+        httpStatus: HttpStatus.OK,
+        message: 'Success!',
+        tag: tag,
+      };
+    } catch (error) {
+      if (error.code === 'ER_DUP_ENTRY')
+        throw new ConflictException('Duplicated tag');
+      else throw error;
+    }
   }
 
   async updateTag(data: UpdateTag) {

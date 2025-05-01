@@ -1,16 +1,22 @@
-import { Type } from 'class-transformer';
 import { IsArray, IsOptional } from 'class-validator';
-import { QueryFiltersDTO } from 'src/app.dtos';
-import { QueryFilters } from 'src/app.interfaces';
 
-export class GetToolsQueryDTO extends QueryFiltersDTO implements ToolFilters {
-  /** Tag */
+import { QueryFilters } from 'src/app.interfaces';
+import { QueryFiltersDTO } from 'src/app.dtos';
+import { Type } from 'class-transformer';
+
+export class GetToolsQueryDTO implements ToolFilters {
+  /** Filter by Tags */
   @IsOptional()
   @IsArray()
   @Type(() => String)
   tags: string[];
+
+  @IsOptional()
+  options: QueryFiltersDTO;
 }
 
-export interface ToolFilters extends QueryFilters {
+export interface ToolFilters {
   tags: string[];
 }
+
+export type FindOptions = QueryFilters;

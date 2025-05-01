@@ -31,7 +31,7 @@ export class Kit {
   @IsNotEmpty()
   owner: User;
 
-  @ManyToMany(() => Tool, (tool) => tool.kits, { cascade: true })
+  @ManyToMany(() => Tool, (tool) => tool.kits)
   @JoinTable({
     name: 'kit_tools',
     joinColumns: [{ name: 'kitId', referencedColumnName: 'id' }],

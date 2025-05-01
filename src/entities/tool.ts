@@ -1,22 +1,22 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  OneToMany,
-  ManyToOne,
+  Entity,
   ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { IsDefined } from 'class-validator';
-import { User } from './user';
-import { ToolStateEnum } from 'src/enums/tool-state';
+
 import { Kit } from './kit';
 import { ToolInfo } from './tool_info';
+import { ToolStateEnum } from 'src/enums/tool-state';
+import { User } from './user';
+import { UserTypeEnum } from 'src/enums/user-type';
 
 @Entity()
 export class Tool {
   /** ID */
   @PrimaryGeneratedColumn()
-  @IsDefined()
   id: number;
 
   /** State */
@@ -35,17 +35,29 @@ export class Tool {
 
   /** Posted By */
   @ManyToOne(() => User, (user) => user.user_id)
-  @IsDefined()
   posted_by: User;
 
   /** Kits */
-  @ManyToMany(() => Kit, (kit) => kit.tools)
+  @ManyToMany(() => Kit, (kit) => kit.tools, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   kits: Kit[];
 
   @Column('int', { default: 0 })
-  @IsDefined()
   numFavorites: number;
 
   @OneToMany(() => ToolInfo, (toolInfo) => toolInfo.tool)
   toolInfos: ToolInfo[];
+
+  constructor(data?: { user: User }) {
+    if (data) {
+      const { user } = data;
+      // this.id = uuid() TO DO
+      this.posted_by = user;
+      this.state= user.type === UserTypeEnum.ADMIN
+        ? ToolStateEnum.APPROVED // Inmediately approve when ADMIN creates it
+        : ToolStateEnum.PENDING,
+    }
+  }
 }

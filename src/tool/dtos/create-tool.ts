@@ -1,14 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
-  IsBoolean,
   IsDefined,
   IsOptional,
   IsString,
   IsUrl,
+  Length,
 } from 'class-validator';
-import { CreateTool } from '../interfaces/create-tool';
 import { Transform, Type } from 'class-transformer';
+
+import { ApiProperty } from '@nestjs/swagger';
+import { CreateTool } from '../interfaces/create-tool';
 
 export class CreateToolDTO implements CreateTool {
   /** Title */
@@ -29,9 +30,10 @@ export class CreateToolDTO implements CreateTool {
   @IsUrl()
   url: string;
   /** Description */
-  @ApiProperty({ required: false, type: String })
-  @IsOptional()
+  @ApiProperty({ required: true, type: String })
+  @IsDefined()
   @IsString()
+  @Length(5, 55)
   description: string;
 
   /** Tags */

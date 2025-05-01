@@ -1,16 +1,17 @@
 import {
-  Entity,
-  PrimaryColumn,
   Column,
-  OneToMany,
-  ManyToMany,
-  JoinTable,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryColumn,
   Unique,
 } from 'typeorm';
-import { Tag } from './tag';
+
 import { IsDefined } from 'class-validator';
+import { Tag } from './tag';
 import { Tool } from './tool';
 
 @Unique(['url', 'valid'])
@@ -52,4 +53,25 @@ export class ToolInfo {
 
   @PrimaryColumn('boolean')
   valid: boolean;
+
+  constructor(data?: {
+    id: number;
+    valid: boolean;
+    tags: Tag[];
+    title: string;
+    description: string;
+    url: string;
+    faviconPath: string;
+  }) {
+    if (data) {
+      const { id, valid, tags, title, description, url, faviconPath } = data;
+      this.id = id;
+      this.valid = valid;
+      this.tags = tags;
+      this.title = title;
+      this.description = description;
+      this.url = url;
+      this.faviconPath = faviconPath;
+    }
+  }
 }

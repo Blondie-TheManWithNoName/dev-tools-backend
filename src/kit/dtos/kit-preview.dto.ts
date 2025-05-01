@@ -7,14 +7,14 @@ export class KitPreviewDTO {
   title: string;
   owner: UserPreviewDTO;
   description: string;
-  toolsLink: string[];
+  toolsFavicons: string[];
   numTools: number;
 
   constructor(kit: Kit) {
     this.id = kit.id;
     this.title = kit.title;
     this.owner = new UserPreviewDTO(kit.owner);
-    this.toolsLink = kit.tools.map((tool) => tool.toolInfos[0].url);
+    this.toolsFavicons = kit.tools.map((tool) => tool.toolInfos[0].url);
     this.numTools = kit.tools.length;
   }
 }

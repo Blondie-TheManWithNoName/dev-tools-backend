@@ -1,10 +1,15 @@
-import { Tool } from 'src/entities/tool';
+export interface EditKitData extends EditKitBody, EditKitParams {}
 
-export interface AddToolData extends AddToolBody {}
+export interface EditKitBody {
+  //** Tool IDs */
+  toolIds?: number[];
+  //** Title */
+  title?: string;
+  //** Description */
+  descritpion?: string;
+}
 
-export interface AddToolBody {
+export interface EditKitParams {
   //** Kit ID */
-  kitIds: number[];
-  //** Tools */
-  toolId: number;
+  kitId: number;
 }

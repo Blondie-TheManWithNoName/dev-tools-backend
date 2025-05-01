@@ -15,7 +15,7 @@ import { GetKitData } from './interfaces/get-kit.interface';
 import { CreateKitData } from './interfaces/create-kit.interface';
 import { GetKitsData } from './interfaces/get-kits.interface';
 import { ToolStateEnum } from 'src/enums/tool-state';
-import { AddToolData } from './interfaces/add-tool.interface';
+import { EditKitData } from './interfaces/add-tool.interface';
 import { RemoveToolData } from './interfaces/remove-tool.interface';
 import { ToolDTO } from 'src/tool/dtos/tool.dto';
 import { KitPreviewDTO } from './dtos/kit-preview.dto';
@@ -70,18 +70,21 @@ export class KitService {
       .createQueryBuilder('kit')
       .leftJoinAndSelect('kit.tools', 'tools')
       .leftJoinAndSelect('tools.toolInfos', 'toolInfos')
+      .leftJoinAndSelect('toolInfos.tags', 'tags')
       .where('kit.id = :kitId', { kitId })
-      .andWhere('toolInfos.valid = true')
+      .andWhere('toolInfos.valid = true') // BUG
       .getOne();
-
-    console.log('kit', kit);
+    console.log('kit', kit, kitId);
     if (!kit) throw new NotFoundException('Kit not found');
 
-    const procKit = kit.tools.map((tool) => new ToolDTO(tool));
+    const tools = kit.tools.map((tool) => new ToolDTO(tool));
 
     return {
       httpStatus: HttpStatus.OK,
-      kit: procKit,
+      kit: {
+        ...kit,
+        tools,
+      },
     };
   }
 
@@ -93,84 +96,118 @@ export class KitService {
     };
   }
 
-  async addTool(data: AddToolData, user: User) {
-    const { kitIds, toolId } = data;
-
-    const kits = await this.kitRepo.find({
-      where: { id: In(kitIds) },
+  async editKit(data: EditKitData, user: User) {
+    const { kitId, toolIds, title: title } = data;
+    const kit = await this.kitRepo.findOne({
+      where: { id: kitId },
       relations: ['tools', 'owner'],
     });
-    if (kits.length !== kitIds.length)
-      throw new NotFoundException('Kit not found');
+    if (!kit) throw new NotFoundException('Kit not found');
     // Guard Check Own Kit
-    kits.forEach((kit) => {
-      if (kit.owner.user_id !== user.user_id)
-        throw new ForbiddenException('User does not own this kit');
-    });
+    if (kit.owner.user_id !== user.user_id)
+      throw new ForbiddenException('User does not own this kit');
 
-    const tool = await this.toolsRepo.findOneBy({ id: toolId });
-    if (!tool) throw new NotFoundException('Tool not found');
+    if (title) kit.title = title;
+    if (toolIds) {
+      const tools = await this.toolsRepo.find({
+        where: { id: In(toolIds) },
+        relations: ['toolInfos'],
+      });
+      if (tools.length !== toolIds.length)
+        throw new NotFoundException('Tool not found');
+      kit.tools = tools;
+    }
 
-    if (
-      tool.state === ToolStateEnum.PENDING ||
-      tool.state === ToolStateEnum.REJECTED
-    )
-      throw new BadRequestException('Tool state not valid');
-
-    // const isDuplicate = kit.tools.some(
-    //   (existingTool) => existingTool.id === tool.id,
-    // );
-    // if (isDuplicate) throw new BadRequestException('Tool already on Kit');
-
-    await Promise.all(
-      kits.map(async (kit) => {
-        kit.tools.push(tool);
-        await this.kitRepo.save(kit);
-      }),
-    );
+    await this.kitRepo.save(kit);
 
     return {
       httpStatus: HttpStatus.OK,
-      message: 'Added!',
-      //   kits,
+      message: 'Edited!',
+      kit: {
+        ...kit,
+        tools: kit.tools.map((tool) => tool.id),
+      },
     };
   }
 
-  async removeTool(data: RemoveToolData, user: User) {
-    const { kitIds, toolId } = data;
+  // async addTool(data: AddToolData, user: User) {
+  //   const { kitIds, toolId } = data;
 
-    const kits = await this.kitRepo.find({
-      where: { id: In(kitIds) },
-      relations: ['tools', 'owner'],
-    });
+  //   const kits = await this.kitRepo.find({
+  //     where: { id: In(kitIds) },
+  //     relations: ['tools', 'owner'],
+  //   });
+  //   if (kits.length !== kitIds.length)
+  //     throw new NotFoundException('Kit not found');
+  //   // Guard Check Own Kit
+  //   kits.forEach((kit) => {
+  //     if (kit.owner.user_id !== user.user_id)
+  //       throw new ForbiddenException('User does not own this kit');
+  //   });
 
-    if (kits.length !== kitIds.length)
-      throw new NotFoundException('Kit not found');
-    // Guard Check Own Kit
-    kits.forEach((kit) => {
-      if (kit.owner.user_id !== user.user_id)
-        throw new ForbiddenException('User does not own this kit');
-    });
+  //   const tool = await this.toolsRepo.findOneBy({ id: toolId });
+  //   if (!tool) throw new NotFoundException('Tool not found');
 
-    const unafectedKits: number[] = [];
-    await Promise.all(
-      kits.map(async (kit) => {
-        const toolIndex = kit.tools.findIndex((tool) => tool.id === toolId);
+  //   if (
+  //     tool.state === ToolStateEnum.PENDING ||
+  //     tool.state === ToolStateEnum.REJECTED
+  //   )
+  //     throw new BadRequestException('Tool state not valid');
 
-        if (toolIndex === -1) unafectedKits.push(kit.id);
+  //   // const isDuplicate = kit.tools.some(
+  //   //   (existingTool) => existingTool.id === tool.id,
+  //   // );
+  //   // if (isDuplicate) throw new BadRequestException('Tool already on Kit');
 
-        kit.tools.splice(toolIndex, 1);
-        await this.kitRepo.save(kit);
-      }),
-    );
+  //   await Promise.all(
+  //     kits.map(async (kit) => {
+  //       kit.tools.push(tool);
+  //       await this.kitRepo.save(kit);
+  //     }),
+  //   );
 
-    if (unafectedKits.length === kits.length)
-      throw new NotFoundException('Tool not found in any specified kits');
+  //   return {
+  //     httpStatus: HttpStatus.OK,
+  //     message: 'Added!',
+  //     //   kits,
+  //   };
+  // }
 
-    return {
-      httpStatus: HttpStatus.OK,
-      message: 'Removed!',
-      unafectedKits,
-    };
-  }
+  // async removeTool(data: RemoveToolData, user: User) {
+  //   const { kitIds, toolId } = data;
+
+  //   const kits = await this.kitRepo.find({
+  //     where: { id: In(kitIds) },
+  //     relations: ['tools', 'owner'],
+  //   });
+
+  //   if (kits.length !== kitIds.length)
+  //     throw new NotFoundException('Kit not found');
+  //   // Guard Check Own Kit
+  //   kits.forEach((kit) => {
+  //     if (kit.owner.user_id !== user.user_id)
+  //       throw new ForbiddenException('User does not own this kit');
+  //   });
+
+  //   const unafectedKits: number[] = [];
+  //   await Promise.all(
+  //     kits.map(async (kit) => {
+  //       const toolIndex = kit.tools.findIndex((tool) => tool.id === toolId);
+
+  //       if (toolIndex === -1) unafectedKits.push(kit.id);
+
+  //       kit.tools.splice(toolIndex, 1);
+  //       await this.kitRepo.save(kit);
+  //     }),
+  //   );
+
+  //   if (unafectedKits.length === kits.length)
+  //     throw new NotFoundException('Tool not found in any specified kits');
+
+  //   return {
+  //     httpStatus: HttpStatus.OK,
+  //     message: 'Removed!',
+  //     unafectedKits,
+  //   };
+  // }
 }

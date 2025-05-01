@@ -1,15 +1,32 @@
-import { IsArray, IsDefined, IsNumber } from 'class-validator';
+import {
+  IsArray,
+  IsDefined,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
-import { AddToolBody } from '../interfaces/add-tool.interface';
+import { EditKitBody } from '../interfaces/add-tool.interface';
 
-export class AddToolBodyDTO implements AddToolBody {
-  /** Kit ID */
-  @IsDefined()
+export class EditKitBodyDTO implements EditKitBody {
+  /** Tool IDs */
+  @IsOptional()
   @IsArray()
   @Type(() => Number)
-  kitIds: number[];
-  /** Tools */
+  toolIds?: number[];
+  /** Title */
+  @IsOptional()
+  @IsString()
+  title?: string;
+  /** Description */
+  @IsOptional()
+  @IsString()
+  descritpion?: string;
+}
+
+export class EditKitParamsDTO {
+  /** Kit ID */
   @IsDefined()
   @IsNumber()
-  toolId: number;
+  kitId: number;
 }

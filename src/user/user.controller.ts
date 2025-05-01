@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -19,6 +20,7 @@ import { UpdateUserDTO } from './dtos/update-user';
 import { UserGuard } from 'src/guards/user.guard';
 import { AuthRequest } from 'src/app.interfaces';
 import { AdminGuard } from 'src/guards/ADMIN.guard';
+import { GetUserKitDTO } from './dtos/get-kits';
 
 @ApiTags('User')
 @Controller('users')
@@ -111,8 +113,9 @@ export class UserController {
     @Req() req: Request,
     @Res() res: Response,
     @Param('id', ParseIntPipe) userId: number,
+    @Query() query: GetUserKitDTO,
   ) {
-    const response = await this.userService.getKits(userId);
+    const response = await this.userService.getKits(userId, query);
     res.status(response.httpStatus).json(response);
   }
 

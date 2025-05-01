@@ -14,6 +14,9 @@ import { Tool } from 'src/entities/tool';
 import { getSaltedPassword } from 'src/app.utils';
 import { ToolInfo } from 'src/entities/tool_info';
 import { Kit } from 'src/entities/kit';
+import { GetKitsQuery } from './interfaces/get-kits';
+import { ToolDTO } from 'src/tool/dtos/tool.dto';
+import { title } from 'process';
 
 @Injectable()
 export class UserService {
@@ -94,19 +97,58 @@ export class UserService {
 
   //#region KITS
 
-  async getKits(id: number) {
+  async getKits(id: number, query: GetKitsQuery) {
+    const { toolId, view } = query;
     const user = await this.userRepo.findOne({ where: { user_id: id } });
 
     if (user) {
       const [kits, count] = await this.kitRepo.findAndCount({
         where: { owner: { user_id: id } },
-        relations: ['tools'],
+        relations: ['tools', 'tools.toolInfos', 'owner'],
       });
 
+      let filteredKits;
+      if (view === 'modal') {
+        filteredKits = kits.map((kit) => {
+          let selected = false;
+          // Convert tools and check if the toolId is already in the kit
+          const tools = kit.tools.map((tool) => {
+            if (toolId && tool.id === toolId) {
+              selected = true;
+            }
+            return tool.id;
+          });
+
+          return {
+            ...kit,
+            selected: toolId !== undefined ? selected : undefined,
+            tools,
+          };
+        });
+      } else if (view === 'preview') {
+        filteredKits = kits.map((kit) => {
+          const icons = kit.tools.map((tool) => {
+            const validToolInfo = tool.toolInfos[0].valid
+              ? tool.toolInfos[0]
+              : tool.toolInfos[1];
+            return validToolInfo.faviconPath;
+          });
+
+          return {
+            id: kit.id,
+            title: kit.title,
+            owner: kit.owner,
+            icons: icons,
+          };
+        });
+      } else
+        filteredKits = kits.map((kit) =>
+          kit.tools.map((tool) => new ToolDTO(tool)),
+        );
       return {
         httpStatus: HttpStatus.OK,
         count,
-        kits,
+        kits: filteredKits,
       };
     } else throw new NotFoundException('User not found');
   }

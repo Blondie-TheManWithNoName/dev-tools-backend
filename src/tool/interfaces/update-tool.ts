@@ -1,10 +1,8 @@
 export interface UpdateToolInfo {
-  /** Tool Id */
-  id: number;
   /** Title */
-  title?: string;
+  title: string;
   /** URL */
-  url?: string;
+  // url?: string;
   /** Not Approved */
   // stateStateId: ToolState;
   description: string;

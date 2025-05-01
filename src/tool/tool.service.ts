@@ -17,7 +17,7 @@ import { ProcessTool } from 'src/entities/process_tool';
 import { ToolInfo } from 'src/entities/tool_info';
 import { UserTypeEnum } from 'src/enums/user-type';
 import { Tag } from 'src/entities/tag';
-import { ToolFilters } from './dtos/get-tools';
+import { FindOptions, ToolFilters } from './dtos/get-tools';
 import { ToolDTO } from './dtos/tool.dto';
 
 @Injectable()
@@ -31,8 +31,11 @@ export class ToolService {
     @InjectRepository(Tag)
     private readonly tagRepo: Repository<Tag>,
   ) {}
-  async getAllTools(data: ToolFilters) {
-    const { tags, page, take } = data;
+  async findTools(
+    filters: ToolFilters,
+    findOptions: FindOptions,
+  ): Promise<Tool[]> {
+    const { tags } = filters;
     const states = [
       Object.keys(ToolStateEnum).indexOf(ToolStateEnum.APPROVED) + 1,
       Object.keys(ToolStateEnum).indexOf(ToolStateEnum.UPDATED) + 1,
@@ -46,88 +49,74 @@ export class ToolService {
       .andWhere('toolInfos.valid = true');
 
     //FILTERS
-    Object.keys(data).forEach((key) => {
+    Object.keys(filters).forEach((key) => {
       switch (key) {
         case 'tags':
           query.andWhere('tags.name IN(:...tags)', { tags });
           break;
-        // Pagination
-        case 'page':
-          const skip = (page - 1) * (take ? take : 0);
-          if (skip) query.skip(skip);
-          break;
-        case 'take':
-          query.take(Number(take));
-          break;
       }
     });
 
-    const [tools, count] = await query.getManyAndCount();
+    // Options
+    const { page, take } = findOptions;
+
+    const tools = await query.getMany();
 
     const procTools = tools.map((tool) => new ToolDTO(tool));
-
-    return {
-      httpStatus: HttpStatus.OK,
-      count: count,
-      tools: procTools,
-    };
+    return tools;
   }
 
-  async getTool(id: number, user: User) {
-    const tool = await this.toolsInfoRepo
-      .createQueryBuilder('toolInfo')
-      .leftJoinAndSelect('toolInfo.tool', 'tool')
-      .leftJoinAndSelect('toolInfo.tags', 'tags')
-      .where('toolInfo.id = :id', { id })
-      .andWhere('toolInfo.valid = :valid', { valid: true })
-      .andWhere(
-        new Brackets((qb) => {
-          if (user !== undefined && user.type === UserTypeEnum.ADMIN) {
-            return;
-          } else {
-            qb.where('tool.state.state_id IN (:...states)', {
-              states: [ToolStateEnum.APPROVED, ToolStateEnum.UPDATED],
-            }).orWhere('tool.posted_by.user_id = :user_id', {
-              user_id: user?.user_id,
-            });
-          }
-        }),
-      )
-      .getOne();
+  // ACTUALLY NOT USED FOR NOW
+  // async getTool(id: number, user: User) {
+  //   const tool = await this.toolsInfoRepo
+  //     .createQueryBuilder('toolInfo')
+  //     .leftJoinAndSelect('toolInfo.tool', 'tool')
+  //     .leftJoinAndSelect('toolInfo.tags', 'tags')
+  //     .where('toolInfo.id = :id', { id })
+  //     .andWhere('toolInfo.valid = :valid', { valid: true })
+  //     .andWhere(
+  //       new Brackets((qb) => {
+  //         if (user !== undefined && user.type === UserTypeEnum.ADMIN) {
+  //           return;
+  //         } else {
+  //           qb.where('tool.state.state_id IN (:...states)', {
+  //             states: [ToolStateEnum.APPROVED, ToolStateEnum.UPDATED],
+  //           }).orWhere('tool.posted_by.user_id = :user_id', {
+  //             user_id: user?.user_id,
+  //           });
+  //         }
+  //       }),
+  //     )
+  //     .getOne();
 
-    if (tool) {
-      return {
-        httpStatus: HttpStatus.OK,
-        tool: tool,
-      };
-    } else throw new NotFoundException();
-  }
+  //   if (tool) {
+  //     return {
+  //       httpStatus: HttpStatus.OK,
+  //       tool: tool,
+  //     };
+  //   } else throw new NotFoundException();
+  // }
 
-  async createTool(data: CreateTool, user) {
+  /**
+   *
+   * @param data - Necessary data to create the Tool
+   * @param user - User who makes the request
+   * @returns    - The tool created
+   */
+  async createTool(data: CreateTool, user: User): Promise<Tool> {
     try {
       const { tags, title, url, description } = data;
 
-      console.log('url', url);
       const exists = await this.checkUrl(url);
       if (!exists) throw new BadRequestException("URL doesn't exist");
 
-      const tool: Tool = await this.toolsRepo.save({
-        posted_by: user,
-        state:
-          user.type === UserTypeEnum.ADMIN
-            ? ToolStateEnum.APPROVED
-            : ToolStateEnum.PENDING,
-      });
+      // Check Tags and Fetch
+      const tagsArray = await this.tagRepo.find({ where: { name: In(tags) } });
+      if (tags.length !== tagsArray.length)
+        throw new NotFoundException(`Tag not found`);
 
-      // Fetch the Tag entity
-      const tagsArray: Tag[] = [];
-      await Promise.all(
-        tags.map(async (tagName) => {
-          const tag = await this.tagRepo.findOne({ where: { name: tagName } });
-          if (!tag) throw new NotFoundException(`Tag not found`);
-          tagsArray.push(tag);
-        }),
-      );
+      const tool = new Tool({ user });
+      const createdTool: Tool = await this.toolsRepo.save(tool);
 
       // // Add the Tag to ToolInfo's tags array if it's not already added
       // if (!toolInfo.tags.find((existingTag) => existingTag.id === tag.id)) {
@@ -141,30 +130,20 @@ export class ToolService {
         ? faviconResponse.url
         : '/favicon.ico';
 
-      const toolInfo = await this.toolsInfoRepo.save({
-        id: tool.id,
-        valid: true,
+      const toolInfoData = {
+        id: createdTool.id,
         tags: tagsArray,
-        description,
         title,
+        description,
         url,
         faviconPath,
-      });
-
-      await this.toolsInfoRepo.save({
-        id: tool.id,
-        valid: false,
-        tags: tagsArray,
-        description,
-        title,
-        url,
-      });
-      return {
-        httpStatus: HttpStatus.OK,
-        message: 'Success!',
-        tool: tool,
-        toolInfo: toolInfo,
       };
+      const toolInfo = new ToolInfo({ ...toolInfoData, valid: true });
+      const toolInfoDrawer = new ToolInfo({ ...toolInfoData, valid: false });
+
+      await this.toolsInfoRepo.save([toolInfo, toolInfoDrawer]);
+
+      return createdTool;
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY')
         throw new ConflictException('Duplicated tool');
@@ -173,36 +152,27 @@ export class ToolService {
     }
   }
 
-  async updateTool(data: UpdateToolInfo, user: User) {
-    const tool = await this.toolsRepo.findOne({
-      where: { id: data.id },
-      relations: ['posted_by'],
-    });
-    if (tool) {
-      // Change tool status
-      await this.toolsRepo.save({
-        id: data.id,
-        state: ToolStateEnum.UPDATED,
-      });
+  async updateTool(id: number, data: UpdateToolInfo, user: User) {
+    const update = await this.toolsInfoRepo.update(id, data);
 
-      // Generate process data
-      const processData = {
-        tool: tool,
-        prev_state: tool.state,
-        state: ToolStateEnum.UPDATED,
-        // message: data.message,
-        processed_by: user,
-        processed_time: new Date(),
-      };
-      const processed = await this.processToolRepo.save(processData);
-      const newTool = await this.toolsInfoRepo.save(data);
+    if (update.affected === 0) new NotFoundException();
+    // Change tool status
+    await this.toolsRepo.update(id, { state: ToolStateEnum.UPDATED });
 
-      return {
-        httpStatus: HttpStatus.OK,
-        message: 'Success!',
-        tool: newTool,
-      };
-    } else throw new NotFoundException();
+    // Generate process data
+    const processData = {
+      // TODO change to constructor on entity
+      tool: tool,
+      prev_state: tool.state,
+      state: ToolStateEnum.UPDATED,
+      // message: data.message,
+      processed_by: user,
+      processed_time: new Date(), // TODO change to dayjs
+    };
+    const processed = await this.processToolRepo.save(processData);
+    const newTool = await this.toolsInfoRepo.save(data);
+
+    return newTool;
   }
 
   async setStateTool(data: SetStateTool, user: User) {

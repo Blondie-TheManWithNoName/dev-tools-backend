@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -23,14 +24,14 @@ import {
 } from './interfaces/create-kit.interface';
 import { CreateKitBodyDTO } from './dtos/create-kit.dto';
 import { GetKitsData, GetKitsQuery } from './interfaces/get-kits.interface';
-import { AddToolBodyDTO } from './dtos/add-tool.dto';
-import { AddToolData } from './interfaces/add-tool.interface';
+import { EditKitBodyDTO, EditKitParamsDTO } from './dtos/add-tool.dto';
 import {
   RemoveToolBody,
   RemoveToolData,
 } from './interfaces/remove-tool.interface';
 import { UserGuard } from 'src/guards/user.guard';
 import { RemoveToolBodyDTO } from './dtos/remove-tool.dto';
+import { EditKitData } from './interfaces/add-tool.interface';
 
 @Controller('kits')
 export class KitController {
@@ -87,35 +88,53 @@ export class KitController {
 
   /**
    * Add Tool to a kit
-   * [PUT] /kits
+   * [PUT] /kits/:kitId
    */
-  @Put('add')
+  @Put(':kitId')
   @UseGuards(UserGuard)
-  @ApiOperation({ summary: 'Add tool to a kit' })
-  async addTool(
+  @ApiOperation({ summary: 'Edit kit name & tools' })
+  async ediKit(
     @Req() req: AuthRequest,
     @Res() res: Response,
-    @Body() body: AddToolBodyDTO,
+    @Body() body: EditKitBodyDTO,
+    @Param() params: EditKitParamsDTO,
   ) {
-    const data: AddToolData = { ...body };
-    const response = await this.kitService.addTool(data, req.user);
+    const data: EditKitData = { ...body, ...params };
+    const response = await this.kitService.editKit(data, req.user);
     res.status(response.httpStatus).json(response);
   }
 
-  /**
-   * Remove Tool from a kit
-   * [PUT] /kits
-   */
-  @Put('remove')
-  @UseGuards(UserGuard)
-  @ApiOperation({ summary: 'Add tool to a kit' })
-  async removeTool(
-    @Req() req: AuthRequest,
-    @Res() res: Response,
-    @Body() body: RemoveToolBodyDTO,
-  ) {
-    const data: RemoveToolData = { ...body };
-    const response = await this.kitService.removeTool(data, req.user);
-    res.status(response.httpStatus).json(response);
-  }
+  // /**
+  //  * Add Tool to a kit
+  //  * [PUT] /kits
+  //  */
+  // @Put('add')
+  // @UseGuards(UserGuard)
+  // @ApiOperation({ summary: 'Add tool to a kit' })
+  // async addTool(
+  //   @Req() req: AuthRequest,
+  //   @Res() res: Response,
+  //   @Body() body: EditKitBodyDTO,
+  // ) {
+  //   const data: AddToolData = { ...body };
+  //   const response = await this.kitService.addTool(data, req.user);
+  //   res.status(response.httpStatus).json(response);
+  // }
+
+  // /**
+  //  * Remove Tool from a kit
+  //  * [PUT] /kits
+  //  */
+  // @Put('remove')
+  // @UseGuards(UserGuard)
+  // @ApiOperation({ summary: 'Add tool to a kit' })
+  // async removeTool(
+  //   @Req() req: AuthRequest,
+  //   @Res() res: Response,
+  //   @Body() body: RemoveToolBodyDTO,
+  // ) {
+  //   const data: RemoveToolData = { ...body };
+  //   const response = await this.kitService.removeTool(data, req.user);
+  //   res.status(response.httpStatus).json(response);
+  // }
 }

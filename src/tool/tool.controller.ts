@@ -1,17 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-  Query,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, ParseIntPipe, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common'; // prettier-ignore
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ToolService } from './tool.service';
@@ -21,7 +8,6 @@ import { SetStateToolDTO } from './dtos/approve-tool';
 import { AuthRequest } from 'src/app.interfaces';
 import { UserGuard } from 'src/guards/user.guard';
 import { AdminGuard } from 'src/guards/ADMIN.guard';
-import { ToolStateEnum } from 'src/enums/tool-state';
 import { OptionalUserGuard } from 'src/guards/optUser.guard';
 import { GetToolsQueryDTO } from './dtos/get-tools';
 
@@ -41,25 +27,27 @@ export class ToolController {
     @Res() res: Response,
     @Query() query: GetToolsQueryDTO,
   ) {
-    const response = await this.toolService.getAllTools(query);
-    res.status(response.httpStatus).json(response);
+    const { options, ...filters } = query;
+    const response = await this.toolService.findTools(filters, options);
+    res.status(HttpStatus.OK).json(response);
   }
 
   /**
+   * ACTUALLY NOT USED FOR NOW
    * Get a tool
    * [GET] /tools/:id
    */
-  @Get(':id')
-  @UseGuards(OptionalUserGuard)
-  @ApiOperation({ summary: 'Get a tool' })
-  async getTool(
-    @Req() req: AuthRequest,
-    @Res() res: Response,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    const response = await this.toolService.getTool(id, req.user);
-    res.status(response.httpStatus).json(response);
-  }
+  // @Get(':id')
+  // @UseGuards(OptionalUserGuard)
+  // @ApiOperation({ summary: 'Get a tool' })
+  // async getTool(
+  //   @Req() req: AuthRequest,
+  //   @Res() res: Response,
+  //   @Param('id', ParseIntPipe) id: number,
+  // ) {
+  //   const response = await this.toolService.getTool(id, req.user);
+  //   res.status(response.httpStatus).json(response);
+  // }
 
   /**
    * Creates a new tool
@@ -76,7 +64,7 @@ export class ToolController {
   ) {
     const data = body;
     const response = await this.toolService.createTool(data, req.user);
-    res.status(response.httpStatus).json(response);
+    res.status(HttpStatus.OK).json(response);
   }
   /**
    * Updates a tool
@@ -91,9 +79,9 @@ export class ToolController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateToolDTO,
   ) {
-    const data = { id: id, valid: false, ...body };
-    const response = await this.toolService.updateTool(data, req.user);
-    res.status(response.httpStatus).json(response);
+    const data = { valid: false, ...body };
+    const response = await this.toolService.updateTool(id, data, req.user);
+    res.status(HttpStatus.OK).json(response);
   }
 
   /**
